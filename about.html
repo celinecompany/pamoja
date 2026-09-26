@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Official Regulations, Governance, Documents and About AFCON PAMOJA 2027 co-hosted by Kenya, Tanzania and Uganda.">
+  <title>Competitions Regulations & About Us | TotalEnergies CAF AFCON PAMOJA 2027</title>
+  <link rel="stylesheet" href="site-shell.css">
+  <link rel="icon" type="image/svg+xml" href="img/caf-logo-header.svg">
+  <style>
+    /* CAF Official Documents & Benchmark Styling */
+    .caf-inside-hero {
+      background: linear-gradient(135deg, #0b4d26 0%, #126035 60%, #1e7b46 100%);
+      color: #ffffff;
+      padding: 2.5rem 1rem;
+      border-bottom: 4px solid #f5c400;
+    }
+    .caf-inside-hero-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    .caf-breadcrumb {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: #e0e0e0;
+      margin-bottom: 0.75rem;
+    }
+    .caf-breadcrumb a {
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.15s;
+    }
+    .caf-breadcrumb a:hover {
+      color: #f5c400;
+      text-decoration: underline;
+    }
+    .caf-breadcrumb-sep {
+      color: rgba(255, 255, 255, 0.5);
+    }
+    .caf-inside-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.75rem);
+      font-weight: 900;
+      margin: 0;
+      line-height: 1.15;
+      font-family: Georgia, 'Times New Roman', serif;
+      letter-spacing: -0.02em;
+    }
+    .caf-inside-subtitle {
+      font-size: 1.05rem;
+      color: #d1fae5;
+      margin-top: 0.5rem;
+      max-width: 760px;
+      line-height: 1.5;
+    }
+
+    /* Layout: Sidebar + Main Content Grid */
+    .caf-portal-layout {
+      max-width: 1400px;
+      margin: 2rem auto 4rem;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 2.5rem;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .caf-portal-layout {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+    }
+
+    /* Multi-Level Sidebar Accordion */
+    .caf-sidebar {
+      background: #ffffff;
+      border: 1px solid #dce6dd;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+      position: sticky;
+      top: 5rem;
+    }
+    .caf-sidebar-header {
+      background: #126035;
+      color: #ffffff;
+      padding: 1.1rem 1.25rem;
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .caf-sidebar-nav {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .caf-nav-group {
+      border-bottom: 1px solid #edf2ee;
+    }
+    .caf-nav-toggle {
+      width: 100%;
+      text-align: left;
+      padding: 1rem 1.25rem;
+      background: transparent;
+      border: none;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #1a2e22;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .caf-nav-toggle:hover {
+      background: #f7faf8;
+      color: #079447;
+    }
+    .caf-nav-toggle.open {
+      color: #079447;
+      background: #f4f9f5;
+    }
+    .caf-nav-toggle .arrow {
+      transition: transform 0.2s ease;
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+    .caf-nav-toggle.open .arrow {
+      transform: rotate(180deg);
+      color: #079447;
+    }
+    .caf-subnav {
+      list-style: none;
+      margin: 0;
+      padding: 0.4rem 0 0.6rem 1.25rem;
+      border-left: 3px solid #079447;
+      margin-left: 1.25rem;
+      margin-bottom: 0.75rem;
+      display: none;
+    }
+    .caf-subnav.active {
+      display: block;
+    }
+    .caf-subnav-item {
+      padding: 0.45rem 0.75rem;
+    }
+    .caf-subnav-item a {
+      color: #374151;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: block;
+      transition: color 0.15s;
+    }
+    .caf-subnav-item a:hover {
+      color: #079447;
+      font-weight: 700;
+    }
+    .caf-subnav-item.current a {
+      color: #079447;
+      font-weight: 800;
+      position: relative;
+    }
+    .caf-nested-toggle {
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #1f2937;
+      padding: 0.35rem 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .caf-nested-list {
+      list-style: none;
+      padding-left: 1rem;
+      margin: 0.3rem 0;
+      display: none;
+      border-left: 2px solid #e5e7eb;
+    }
+    .caf-nested-list.active {
+      display: block;
+    }
+    .caf-nested-list li {
+      padding: 0.25rem 0;
+    }
+    .caf-nested-list a {
+      color: #4b5563;
+      font-size: 0.84rem;
+      text-decoration: none;
+    }
+    .caf-nested-list a:hover {
+      color: #079447;
+    }
+
+    /* Main Documents & Articles Area */
+    .caf-main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* High-Impact CTA Banner for Tickets */
+    .pamoja-ticket-cta {
+      background: linear-gradient(135deg, #121212 0%, #1e2420 50%, #075b34 100%);
+      border: 2px solid #f5c400;
+      border-radius: 0.75rem;
+      padding: 1.75rem 2rem;
+      color: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    .pamoja-ticket-cta h3 {
+      font-size: 1.4rem;
+      font-weight: 900;
+      margin: 0 0 0.35rem;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .pamoja-badge {
+      background: #f5c400;
+      color: #121212;
+      font-size: 0.72rem;
+      font-weight: 900;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .pamoja-ticket-cta p {
+      margin: 0;
+      color: #d1d5db;
+      font-size: 0.95rem;
+      max-width: 600px;
+    }
+    .cta-btn-gold {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #f5c400;
+      color: #121212;
+      font-weight: 900;
+      font-size: 1rem;
+      padding: 0.85rem 1.75rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      box-shadow: 0 4px 14px rgba(245, 196, 0, 0.4);
+      transition: transform 0.15s ease, background 0.15s ease;
+      white-space: nowrap;
+    }
+    .cta-btn-gold:hover {
+      background: #ffd633;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 196, 0, 0.6);
+    }
+
+    /* Filter & Search Bar */
+    .docs-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      background: #ffffff;
+      padding: 1.25rem 1.5rem;
+      border-radius: 0.75rem;
+      border: 1px solid #dce6dd;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+    .docs-search-box {
+      display: flex;
+      align-items: center;
+      background: #f8faf9;
+      border: 1px solid #ccd9ce;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.85rem;
+      flex: 1;
+      max-width: 400px;
+      gap: 0.5rem;
+    }
+    .docs-search-box input {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 0.95rem;
+      width: 100%;
+      color: #1f2937;
+    }
+    .docs-filter-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .filter-pill {
+      background: #f0f4f1;
+      color: #374151;
+      border: 1px solid #d1ded4;
+      padding: 0.4rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-pill.active, .filter-pill:hover {
+      background: #079447;
+      color: #ffffff;
+      border-color: #079447;
+    }
+
+    /* Document Cards Grid */
+    .doc-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 1.25rem;
+    }
+    @media (max-width: 640px) {
+      .doc-cards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .doc-card {
+      background: #ffffff;
+      border: 1px solid #dce6dd;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      display: flex;
+      gap: 1.25rem;
+      align-items: center;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+      position: relative;
+    }
+    .doc-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(7, 148, 71, 0.1);
+      border-color: #079447;
+    }
+    .doc-icon-badge {
+      width: 52px;
+      height: 60px;
+      flex-shrink: 0;
+      background: #fee2e2;
+      border: 1px solid #fca5a5;
+      border-radius: 0.4rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #dc2626;
+      font-weight: 900;
+      font-size: 0.72rem;
+    }
+    .doc-icon-badge svg {
+      width: 24px;
+      height: 24px;
+      fill: #dc2626;
+      margin-bottom: 2px;
+    }
+    .doc-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .doc-title {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #111827;
+      margin: 0 0 0.35rem;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .doc-meta {
+      font-size: 0.8rem;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .doc-category-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #079447;
+      background: #e8f5ec;
+      padding: 0.15rem 0.5rem;
+      border-radius: 0.25rem;
+      text-transform: uppercase;
+    }
+
+    /* Competitions Matrix Showcase (Benchmarked) */
+    .caf-competitions-showcase {
+      background: #ffffff;
+      border: 1px solid #dce6dd;
+      border-radius: 0.75rem;
+      padding: 1.75rem;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+    }
+    .caf-comp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-top: 1.25rem;
+    }
+    .comp-pill-card {
+      background: #f8faf9;
+      border: 1px solid #e0e9e2;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      min-height: 120px;
+    }
+    .comp-pill-card:hover {
+      background: #ffffff;
+      border-color: #079447;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(7, 148, 71, 0.12);
+    }
+    .comp-pill-card img {
+      max-height: 48px;
+      max-width: 110px;
+      object-fit: contain;
+      margin-bottom: 0.5rem;
+    }
+    .comp-pill-card span {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #374151;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Ribbon & Navigation -->
+  <header class="site-shell-header">
+    <div class="site-shell-flag-key" aria-label="Host countries">
+      <span class="flag-tz">Tanzania</span>
+      <span class="flag-ke">Kenya</span>
+      <span class="flag-ug">Uganda</span>
+    </div>
+    <div class="site-shell-header-inner">
+      <a class="site-shell-brand" href="index.html">
+        <span class="site-shell-mark">CAF</span>
+        <span>
+          <strong>AFCON PAMOJA 2027</strong>
+          <span class="site-shell-country">Kenya - Tanzania - Uganda</span>
+        </span>
+      </a>
+      <nav class="site-shell-nav" aria-label="Utility navigation">
+        <a href="index.html">Ticketing Portal</a>
+        <a href="super-admin.html">Operations</a>
+      </nav>
+    </div>
+  </header>
+
+  <nav class="site-public-nav" aria-label="Main navigation">
+    <div class="site-shell-flag-key" aria-label="Host countries">
+      <span class="flag-tz">Tanzania</span>
+      <span class="flag-ke">Kenya</span>
+      <span class="flag-ug">Uganda</span>
+    </div>
+    <div class="site-public-nav-inner">
+      <a class="site-public-nav-brand" href="index.html">
+        <img src="img/cafonline_onlight_352273665a.svg" alt="CAF Online">
+        <span>AFCON PAMOJA 2027</span>
+      </a>
+      <div class="site-public-nav-links">
+        <a href="index.html">Home</a>
+        <a href="about.html" aria-current="page">About Us</a>
+        <a href="fixtures.html">Fixtures</a>
+        <a href="venues.html">Venues</a>
+        <a href="faq.html">FAQ</a>
+        <a href="contact.html">Contact Us</a>
+        <a class="nav-ticket-link" href="index.html">Get Tickets</a>
+      </div>
+      <button class="site-mobile-menu-trigger" id="siteMobileMenuTrigger" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero Header -->
+  <section class="caf-inside-hero">
+    <div class="caf-inside-hero-inner">
+      <div>
+        <div class="caf-breadcrumb">
+          <a href="index.html">CAF</a>
+          <span class="caf-breadcrumb-sep">/</span>
+          <a href="about.html">Inside CAF</a>
+          <span class="caf-breadcrumb-sep">/</span>
+          <a href="about.html">About Us</a>
+          <span class="caf-breadcrumb-sep">/</span>
+          <span>Official Documents & Competitions Regulations</span>
+        </div>
+        <h1 class="caf-inside-title">Competitions Regulations & Governance</h1>
+        <p class="caf-inside-subtitle">Official regulatory frameworks, disciplinary codes, host nation guidelines, and statutory documents for the TotalEnergies CAF Africa Cup of Nations PAMOJA 2027.</p>
+      </div>
+      <div>
+        <a href="index.html" class="cta-btn-gold">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M13 3v4a1 1 0 001 1h4l-5-5zm2 7a1 1 0 011-1h3.586L14 3.414V9a1 1 0 011 1zm-4-8H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9.414a2 2 0 00-.586-1.414l-6.414-6.414A2 2 0 0011 1.586V2zm-3 8a1 1 0 011-1h6a1 1 0 110 2H8a1 1 0 01-1-1zm0 4a1 1 0 011-1h6a1 1 0 110 2H8a1 1 0 01-1-1zm0 4a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z"/></svg>
+          Buy Match Tickets
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Portal Layout -->
+  <div class="caf-portal-layout">
+    
+    <!-- Multi-Level Sidebar Accordion -->
+    <aside class="caf-sidebar">
+      <div class="caf-sidebar-header">
+        <span>Inside CAF Directory</span>
+      </div>
+      <ul class="caf-sidebar-nav">
+        
+        <!-- Official Documents (Active Branch) -->
+        <li class="caf-nav-group">
+          <button class="caf-nav-toggle open" onclick="toggleAccordion(this)">
+            <span>Official Documents</span>
+            <span class="arrow">&#9660;</span>
+          </button>
+          <ul class="caf-subnav active">
+            <li class="caf-subnav-item current"><a href="about.html">Competitions Regulations</a></li>
+            <li class="caf-subnav-item"><a href="about.html#disciplinary">CAF Disciplinary Code</a></li>
+            <li class="caf-subnav-item"><a href="about.html#medical">Medical & Anti-Doping Regulations</a></li>
+            <li class="caf-subnav-item"><a href="about.html#licensing">Club Licensing Framework</a></li>
+            <li class="caf-subnav-item"><a href="about.html#security">Safety & Security Guidelines</a></li>
+            <li class="caf-subnav-item"><a href="about.html#finance">Financial Regulations</a></li>
+          </ul>
+        </li>
+
+        <!-- About Us -->
+        <li class="caf-nav-group">
+          <button class="caf-nav-toggle" onclick="toggleAccordion(this)">
+            <span>About Us</span>
+            <span class="arrow">&#9660;</span>
+          </button>
+          <ul class="caf-subnav">
+            <li class="caf-subnav-item"><a href="about.html">CAF History & Milestones</a></li>
+            <li class="caf-subnav-item"><a href="about.html">CAF President & Leadership</a></li>
+            <li class="caf-subnav-item"><a href="about.html">Executive Committee (EXCO)</a></li>
+            <li class="caf-subnav-item"><a href="about.html">Careers at CAF</a></li>
+            <li class="caf-subnav-item"><a href="contact.html">Contact Headquarters</a></li>
+          </ul>
+        </li>
+
+        <!-- Member Associations -->
+        <li class="caf-nav-group">
+          <button class="caf-nav-toggle" onclick="toggleAccordion(this)">
+            <span>Member Associations (54)</span>
+            <span class="arrow">&#9660;</span>
+          </button>
+          <ul class="caf-subnav">
+            <li>
+              <button class="caf-nested-toggle" onclick="toggleNested(this)">
+                <strong>CECAFA (East Africa)</strong>
+                <span>+</span>
+              </button>
+              <ul class="caf-nested-list active">
+                <li><a href="venues.html#kenya">Kenya Football Federation (FKF)</a></li>
+                <li><a href="venues.html#tanzania">Tanzania Football Federation (TFF)</a></li>
+                <li><a href="venues.html#uganda">Federation of Uganda Football (FUFA)</a></li>
+                <li><a href="#">Rwanda (FERWAFA)</a></li>
+                <li><a href="#">Ethiopia (EFF)</a></li>
+                <li><a href="#">Burundi (FFB)</a></li>
+              </ul>
+            </li>
+            <li>
+              <button class="caf-nested-toggle" onclick="toggleNested(this)">
+                <strong>UNAF (North Africa)</strong>
+                <span>+</span>
+              </button>
+              <ul class="caf-nested-list">
+                <li><a href="#">Egypt (EFA)</a></li>
+                <li><a href="#">Morocco (FRMF)</a></li>
+                <li><a href="#">Algeria (FAF)</a></li>
+                <li><a href="#">Tunisia (FTF)</a></li>
+                <li><a href="#">Libya (LFF)</a></li>
+              </ul>
+            </li>
+            <li>
+              <button class="caf-nested-toggle" onclick="toggleNested(this)">
+                <strong>WAFU A & B (West Africa)</strong>
+                <span>+</span>
+              </button>
+              <ul class="caf-nested-list">
+                <li><a href="#">Senegal (FSF)</a></li>
+                <li><a href="#">Côte d'Ivoire (FIF)</a></li>
+                <li><a href="#">Nigeria (NFF)</a></li>
+                <li><a href="#">Ghana (GFA)</a></li>
+                <li><a href="#">Mali (FEMAFOOT)</a></li>
+              </ul>
+            </li>
+            <li>
+              <button class="caf-nested-toggle" onclick="toggleNested(this)">
+                <strong>COSAFA & UNIFFAC</strong>
+                <span>+</span>
+              </button>
+              <ul class="caf-nested-list">
+                <li><a href="#">South Africa (SAFA)</a></li>
+                <li><a href="#">Cameroon (FECAFOOT)</a></li>
+                <li><a href="#">DR Congo (FECOFA)</a></li>
+                <li><a href="#">Zambia (FAZ)</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Football Development -->
+        <li class="caf-nav-group">
+          <button class="caf-nav-toggle" onclick="toggleAccordion(this)">
+            <span>Football Development</span>
+            <span class="arrow">&#9660;</span>
+          </button>
+          <ul class="caf-subnav">
+            <li class="caf-subnav-item"><a href="about.html">Technical & Coaching Education</a></li>
+            <li class="caf-subnav-item"><a href="about.html">Refereeing Development</a></li>
+            <li class="caf-subnav-item"><a href="about.html">Youth Football (U-17 / U-20)</a></li>
+            <li class="caf-subnav-item"><a href="about.html">Women's Football Growth</a></li>
+            <li class="caf-subnav-item"><a href="about.html">African Schools Football</a></li>
+          </ul>
+        </li>
+
+      </ul>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="caf-main-content">
+      
+      <!-- High Conversion CTA Card -->
+      <section class="pamoja-ticket-cta">
+        <div>
+          <h3>
+            <span>AFCON PAMOJA 2027 Match Tickets</span>
+            <span class="pamoja-badge">East Africa 2027</span>
+          </h3>
+          <p>Join millions of passionate supporters in Kenya, Tanzania, and Uganda. Explore direct interactive stadium seat maps, verified category pricing, and instant mobile money checkout.</p>
+        </div>
+        <a href="index.html" class="cta-btn-gold">
+          Select Seats & Buy
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+        </a>
+      </section>
+
+      <!-- Search & Filters Toolbar -->
+      <section class="docs-toolbar">
+        <div class="docs-search-box">
+          <svg width="18" height="18" fill="#6b7280" viewBox="0 0 24 24"><path d="M10 18a7.952 7.952 0 004.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0018 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>
+          <input type="text" id="docSearchInput" placeholder="Search official regulations and documents..." onkeyup="filterDocs()">
+        </div>
+        <div class="docs-filter-pills">
+          <button class="filter-pill active" onclick="setDocFilter('all', this)">All Documents</button>
+          <button class="filter-pill" onclick="setDocFilter('regulations', this)">Tournament Regulations</button>
+          <button class="filter-pill" onclick="setDocFilter('governance', this)">Governance & Legal</button>
+          <button class="filter-pill" onclick="setDocFilter('safety', this)">Stadium & Safety</button>
+        </div>
+      </section>
+
+      <!-- Document Cards Grid -->
+      <section class="doc-cards-grid" id="docsGrid">
+        
+        <!-- Card 1 -->
+        <a class="doc-card" href="img/afcon-2027-mark.png" target="_blank" data-category="regulations" data-title="CAF Competitions Calendar 2026-2027">
+          <div class="doc-icon-badge">
+            <svg viewBox="0 0 24 24"><path d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/></svg>
+            <span>PDF</span>
+          </div>
+          <div class="doc-info">
+            <h4 class="doc-title">CAF Competitions Calendar - 2026 / 2027 (Official Edition)</h4>
+            <div class="doc-meta">
+              <span class="doc-category-tag">Calendar</span>
+              <span>Updated Sep 2026 &bull; 1.4 MB</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Card 2 -->
+        <a class="doc-card" href="img/afcon-2027-mark.png" target="_blank" data-category="regulations" data-title="Regulations of the TotalEnergies Africa Cup of Nations">
+          <div class="doc-icon-badge">
+            <svg viewBox="0 0 24 24"><path d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/></svg>
+            <span>PDF</span>
+          </div>
+          <div class="doc-info">
+            <h4 class="doc-title">Regulations of the TotalEnergies Africa Cup of Nations (AFCON)</h4>
+            <div class="doc-meta">
+              <span class="doc-category-tag">Tournament</span>
+              <span>Full Statute &bull; 3.8 MB</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Card 3 -->
+        <a class="doc-card" href="img/afcon-2027-mark.png" target="_blank" data-category="governance" data-title="CAF Disciplinary Code">
+          <div class="doc-icon-badge">
+            <svg viewBox="0 0 24 24"><path d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/></svg>
+            <span>PDF</span>
+          </div>
+          <div class="doc-info">
+            <h4 class="doc-title">CAF Disciplinary Code & Ethics Compliance Regulations</h4>
+            <div class="doc-meta">
+              <span class="doc-category-tag">Legal</span>
+              <span>Governance &bull; 2.1 MB</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Card 4 -->
+        <a class="doc-card" href="img/afcon-2027-mark.png" target="_blank" data-category="safety" data-title="CAF Stadium Regulations & Safety Framework">
+          <div class="doc-icon-badge">
+            <svg viewBox="0 0 24 24"><path d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/></svg>
+            <span>PDF</span>
+          </div>
+          <div class="doc-info">
+            <h4 class="doc-title">CAF Stadium Infrastructure & Venue Safety Requirements (Cat 4)</h4>
+            <div class="doc-meta">
+              <span class="doc-category-tag">Safety</span>
+              <span>Infrastructure &bull; 4.2 MB</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Card 5 -->
+        <a class="doc-card" href="img/afcon-2027-mark.png" target="_blank" data-category="governance" data-title="CAF Club Licensing Regulations">
+          <div class="doc-icon-badge">
+            <svg viewBox="0 0 24 24"><path d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/></svg>
+            <span>PDF</span>
+          </div>
+          <div class="doc-info">
+            <h4 class="doc-title">CAF Club Licensing Framework & Financial Fair Play Regulations</h4>
+            <div class="doc-meta">
+              <span class="doc-category-tag">Licensing</span>
+              <span>Statute &bull; 2.6 MB</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Card 6 -->
+        <a class="doc-card" href="img/afcon-2027-mark.png" target="_blank" data-category="regulations" data-title="CAF Medical and Doping Control Regulations">
+          <div class="doc-icon-badge">
+            <svg viewBox="0 0 24 24"><path d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/></svg>
+            <span>PDF</span>
+          </div>
+          <div class="doc-info">
+            <h4 class="doc-title">CAF Medical Protocol, Concussion and Anti-Doping Regulations</h4>
+            <div class="doc-meta">
+              <span class="doc-category-tag">Medical</span>
+              <span>Healthcare &bull; 1.9 MB</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Card 7 -->
+        <a class="doc-card" href="img/afcon-2027-mark.png" target="_blank" data-category="regulations" data-title="CAF Equipment and Kit Regulations">
+          <div class="doc-icon-badge">
+            <svg viewBox="0 0 24 24"><path d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/></svg>
+            <span>PDF</span>
+          </div>
+          <div class="doc-info">
+            <h4 class="doc-title">CAF Kit and Equipment Regulations (Team Uniforms & Badging)</h4>
+            <div class="doc-meta">
+              <span class="doc-category-tag">Equipment</span>
+              <span>Standards &bull; 2.2 MB</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Card 8 -->
+        <a class="doc-card" href="img/afcon-2027-mark.png" target="_blank" data-category="governance" data-title="TotalEnergies AFCON PAMOJA 2027 Host Country Agreement">
+          <div class="doc-icon-badge">
+            <svg viewBox="0 0 24 24"><path d="M6 2a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/></svg>
+            <span>PDF</span>
+          </div>
+          <div class="doc-info">
+            <h4 class="doc-title">Tri-Nation Host Agreement (Kenya, Tanzania, Uganda & CAF)</h4>
+            <div class="doc-meta">
+              <span class="doc-category-tag">PAMOJA 2027</span>
+              <span>Official Protocol &bull; 5.1 MB</span>
+            </div>
+          </div>
+        </a>
+
+      </section>
+
+      <!-- Competitions Matrix Benchmark (From afcon-2025-2) -->
+      <section class="caf-competitions-showcase">
+        <h3 style="margin: 0; font-size: 1.25rem; color: #111827; font-weight: 800;">CAF Official Competitions Matrix</h3>
+        <p style="margin: 0.35rem 0 0; color: #6b7280; font-size: 0.9rem;">Explore tournament frameworks, history, and official documents across the continent's major football properties.</p>
+        
+        <div class="caf-comp-grid">
+          
+          <a class="comp-pill-card" href="index.html">
+            <img src="img/afcon2025_logo_land_color-v1_e547b4f4b7.png" alt="AFCON">
+            <span>Africa Cup of Nations</span>
+          </a>
+
+          <a class="comp-pill-card" href="index.html">
+            <img src="img/chan2024-logo-on-light_be5afba727.png" alt="CHAN">
+            <span>CHAN Tournament</span>
+          </a>
+
+          <a class="comp-pill-card" href="index.html">
+            <img src="img/logo-caf-champions-league-black-potrait_3c0334bb4e.png" alt="Champions League">
+            <span>CAF Champions League</span>
+          </a>
+
+          <a class="comp-pill-card" href="index.html">
+            <img src="img/logo-confederation-cup-black-potrait_ea9dbd2f11.png" alt="Confederation Cup">
+            <span>CAF Confederation Cup</span>
+          </a>
+
+          <a class="comp-pill-card" href="index.html">
+            <img src="img/wafcon26_land_color_onlight_65f0992802.png" alt="WAFCON">
+            <span>Women's AFCON</span>
+          </a>
+
+          <a class="comp-pill-card" href="index.html">
+            <img src="img/caf-wcl-egypt-2025_logo-07-minified_9b581b8161.png" alt="Women's CL">
+            <span>Women's Champions League</span>
+          </a>
+
+          <a class="comp-pill-card" href="index.html">
+            <img src="img/canu23_en_994bf67307.png" alt="U-23 AFCON">
+            <span>U-23 Africa Cup of Nations</span>
+          </a>
+
+          <a class="comp-pill-card" href="index.html">
+            <img src="img/fifawc_5d80abac09.png" alt="FIFA World Cup Qualifiers">
+            <span>FIFA WC African Qualifiers</span>
+          </a>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Standardized Full Sponsor Footer -->
+  <footer class="site-shell-footer">
+    <div class="site-shell-footer-inner">
+      <div class="site-shell-sponsor-group">
+        <h2>Official title sponsor</h2>
+        <div class="site-shell-sponsors">
+          <a href="https://totalenergies.com/" target="_blank" rel="noreferrer" title="TotalEnergies"><img src="img/afcon25_sponsors-te_28107f5b5e.png" alt="TotalEnergies"></a>
+        </div>
+      </div>
+      <div class="site-shell-sponsor-group">
+        <h2>Official global partners</h2>
+        <div class="site-shell-sponsors">
+          <a href="#" title="1xBet"><img src="img/afcon25_sponsors-1xbet_76c7900846.png" alt="1xBet"></a>
+          <a href="#" title="European Union"><img src="img/afcon25_sponsors-eu_8cd3d50b45.png" alt="European Union"></a>
+          <a href="#" title="Visa"><img src="img/afcon25_sponsors-visa_f995c7505b.png" alt="Visa"></a>
+          <a href="#" title="Tecno"><img src="img/afcon25_sponsors-tecno_375816cc22.png" alt="Tecno"></a>
+          <a href="#" title="Royal Air Maroc"><img src="img/afcon25_sponsors-air-maroc_11178a808c.png" alt="Royal Air Maroc"></a>
+          <a href="#" title="Orange"><img src="img/afcon25_sponsors-orange_da5bb600b6.png" alt="Orange"></a>
+          <a href="#" title="Puma"><img src="img/afcon25_sponsors-puma_960a43e0fc.png" alt="Puma"></a>
+          <a href="#" title="Suzuki"><img src="img/sponsor-suzuki_3f44de9a7f.png" alt="Suzuki"></a>
+        </div>
+      </div>
+      <div class="site-shell-sponsor-group">
+        <h2>Official competition sponsors</h2>
+        <div class="site-shell-sponsors">
+          <a href="#" title="Danone"><img src="img/afcon25_sponsors-danone_05cbfa0354.png" alt="Danone"></a>
+          <a href="#" title="Rexona"><img src="img/afcon25_sponsors-unilever_44be1a0afa.png" alt="Rexona"></a>
+          <a href="#" title="LONACI"><img src="img/afcon25_sponsors-lonaci_928fe7605b.png" alt="LONACI"></a>
+          <a href="#" title="Midea"><img src="img/afcon25_sponsors-midea_f27de16fd4.png" alt="Midea"></a>
+          <a href="#" title="Apsonic"><img src="img/afcon25_sponsors-apsonic_0203981fe9.png" alt="Apsonic"></a>
+          <a href="#" title="Konami"><img src="img/afcon25_sponsors-website_konami_08c33a953c.png" alt="Konami"></a>
+          <a href="#" title="Visit Morocco"><img src="img/afcon25_sponsors-website_visit-morocco_0151986ae4.png" alt="Visit Morocco"></a>
+          <a href="#" title="ONCF"><img src="img/afcon25_sponsors-website_oncf_214e2091df.png" alt="ONCF"></a>
+          <a href="#" title="OCP"><img src="img/afcon25_sponsors-website_ocp_e694c6715a.png" alt="OCP"></a>
+          <a href="#" title="Morocco Now"><img src="img/afcon25_sponsors-website_morocco-now_43746508f5.png" alt="Morocco Now"></a>
+        </div>
+      </div>
+      <div class="site-shell-sponsor-group">
+        <h2>Official suppliers</h2>
+        <div class="site-shell-sponsors">
+          <a href="#" title="Africa Global Logistics"><img src="img/afcon25_sponsors-agl_3465c09341.png" alt="Africa Global Logistics"></a>
+          <a href="#" title="La Vache qui rit"><img src="img/afcon25_sponsors-la-vache-qui-rit_647aa82a19.png" alt="La Vache qui rit"></a>
+          <a href="#" title="Sidi Ali"><img src="img/afcon25_sponsors-website_sidi-ali_85b357069a.png" alt="Sidi Ali"></a>
+          <a href="#" title="Acibadem"><img src="img/afcon25_sponsors-website_acibadem_c131d746bb.png" alt="Acibadem"></a>
+        </div>
+      </div>
+      <div class="site-shell-footer-bottom">
+        <span>AFCON PAMOJA 2027 Ticketing System &bull; Kenya &bull; Tanzania &bull; Uganda</span>
+        <span>
+          <a href="privacy.html" style="color: #fff; text-decoration: underline;">Privacy</a> | 
+          <a href="terms.html" style="color: #fff; text-decoration: underline;">Terms</a> | 
+          <a href="faq.html" style="color: #fff; text-decoration: underline;">FAQ</a> | 
+          <a href="contact.html" style="color: #fff; text-decoration: underline;">Contact</a>
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="header-menu.js"></script>
+  <script>
+    function toggleAccordion(btn) {
+      btn.classList.toggle('open');
+      const subnav = btn.nextElementSibling;
+      if (subnav) {
+        subnav.classList.toggle('active');
+      }
+    }
+
+    function toggleNested(btn) {
+      const list = btn.nextElementSibling;
+      if (list) {
+        list.classList.toggle('active');
+        const span = btn.querySelector('span');
+        if (span) {
+          span.textContent = list.classList.contains('active') ? '−' : '+';
+        }
+      }
+    }
+
+    let activeFilter = 'all';
+
+    function setDocFilter(category, btn) {
+      activeFilter = category;
+      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      filterDocs();
+    }
+
+    function filterDocs() {
+      const query = (document.getElementById('docSearchInput').value || '').toLowerCase().trim();
+      const cards = document.querySelectorAll('#docsGrid .doc-card');
+
+      cards.forEach(card => {
+        const cat = card.getAttribute('data-category');
+        const title = (card.getAttribute('data-title') || '').toLowerCase();
+        const matchesCategory = (activeFilter === 'all' || cat === activeFilter);
+        const matchesQuery = !query || title.includes(query);
+
+        if (matchesCategory && matchesQuery) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

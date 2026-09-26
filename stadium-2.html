@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Interactive Stadium Seat Map</title>
+<link rel="stylesheet" href="site-shell.css">
+<link rel="icon" type="image/svg+xml" href="img/caf-logo-header.svg">
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f5f7;
+    color: #17202a;
+}
+
+.page {
+    width: min(1400px, 96%);
+    margin: 25px auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    margin: 0 0 6px;
+}
+
+.header p {
+    margin: 0;
+    color: #6b7280;
+}
+
+/* =========================
+   MAIN LAYOUT
+========================= */
+
+.layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 310px;
+    gap: 20px;
+}
+
+/* =========================
+   MAP
+========================= */
+
+.map-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 16px;
+    padding: 15px;
+    overflow: hidden;
+}
+
+#stadium {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* =========================
+   STADIUM
+========================= */
+
+.bowl {
+    fill: #eeeeee;
+    stroke: #d2d2d2;
+    stroke-width: 2;
+}
+
+.inner-bowl {
+    fill: #fafafa;
+    stroke: #d5d5d5;
+    stroke-width: 2;
+}
+
+/* =========================
+   SEATS
+========================= */
+
+.seat {
+    cursor: pointer;
+    stroke: white;
+    stroke-width: 0.7;
+    transition: transform .1s;
+}
+
+.seat:hover {
+    stroke: #111827;
+    stroke-width: 1.5;
+}
+
+.seat.available {
+    fill: #b7bec7;
+}
+
+.seat.selected {
+    fill: #f59e0b;
+    stroke: #111827;
+    stroke-width: 1.5;
+}
+
+.seat.sold {
+    fill: #555;
+    cursor: not-allowed;
+}
+
+.seat.reserved {
+    fill: #d97706;
+    cursor: not-allowed;
+}
+
+/* Different pricing tiers */
+
+.seat.vip {
+    fill: #7c3aed;
+}
+
+.seat.premium {
+    fill: #2563eb;
+}
+
+.seat.standard {
+    fill: #64748b;
+}
+
+.seat.bronze {
+    fill: #a8a29e;
+}
+
+/* =========================
+   SECTION LABEL
+========================= */
+
+.section-label {
+    fill: #374151;
+    font-size: 13px;
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+}
+
+/* =========================
+   FIELD
+========================= */
+
+.field {
+    fill: #278b43;
+    stroke: #17632e;
+    stroke-width: 3;
+}
+
+.field-stripe {
+    fill: rgba(255,255,255,.07);
+}
+
+.field-line {
+    fill: none;
+    stroke: white;
+    stroke-width: 2;
+}
+
+.goal {
+    fill: none;
+    stroke: white;
+    stroke-width: 3;
+}
+
+.center-circle {
+    fill: none;
+    stroke: white;
+    stroke-width: 2;
+}
+
+/* =========================
+   SIDE PANEL
+========================= */
+
+.panel {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 16px;
+    padding: 22px;
+    align-self: start;
+}
+
+.panel h2 {
+    margin-top: 0;
+}
+
+.muted {
+    color: #6b7280;
+}
+
+.divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 20px 0;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    margin: 12px 0;
+    gap: 10px;
+}
+
+.row span:first-child {
+    color: #6b7280;
+}
+
+.price {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 20px 0;
+}
+
+.selected-list {
+    max-height: 180px;
+    overflow-y: auto;
+    margin: 15px 0;
+}
+
+.selected-seat {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+.total {
+    font-size: 22px;
+    font-weight: bold;
+    margin: 15px 0;
+}
+
+button {
+    width: 100%;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    background: #111827;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #000;
+}
+
+button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* =========================
+   LEGEND
+========================= */
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 15px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.legend-box {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+}
+
+.legend-vip {
+    background: #7c3aed;
+}
+
+.legend-premium {
+    background: #2563eb;
+}
+
+.legend-standard {
+    background: #64748b;
+}
+
+.legend-bronze {
+    background: #a8a29e;
+}
+
+.legend-sold {
+    background: #555;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width: 900px) {
+
+    .layout {
+        grid-template-columns: 1fr;
+    }
+
+    .panel {
+        width: 100%;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header class="site-shell-header">
+    <div class="site-shell-flag-key" aria-label="Flag colors for Tanzania, Kenya and Uganda"><span class="flag-tz">Tanzania</span><span class="flag-ke">Kenya</span><span class="flag-ug">Uganda</span></div>
+    <div class="site-shell-header-inner">
+        <a class="site-shell-brand" href="index.html"><span class="site-shell-mark">CAF</span><span><strong>AFCON PAMOJA 2027</strong><span class="site-shell-country">Kenya · Uganda · Tanzania</span></span></a>
+        <nav class="site-shell-nav" aria-label="Main navigation"><a href="index.html">Fan home</a><a href="stadium.html">Stadium simulator</a><a href="super-admin.html">Operations</a></nav>
+    </div>
+</header>
+
+<nav class="site-public-nav" aria-label="Main navigation"><div class="site-public-nav-inner"><a class="site-public-nav-brand" href="index.html"><img src="img/caf-logo-header.svg" alt="CAF"><span>AFCON PAMOJA 2026</span></a><div class="site-public-nav-links"><a href="index.html">Home</a><a href="about.html">About us</a><a href="fixtures.html">Fixtures</a><a href="venues.html">Venues</a><a href="faq.html">FAQ</a><a href="contact.html">Contact us</a><a class="nav-ticket-link" href="index.html">Get tickets</a></div></div></nav>
+
+<div class="page">
+
+    <div class="header">
+
+        <h1>Select Your Seats</h1>
+
+        <p>
+            Click any available seat to add it to your booking.
+        </p>
+
+    </div>
+
+
+    <div class="layout">
+
+
+        <!-- =========================
+             STADIUM MAP
+        ========================== -->
+
+        <div class="map-card">
+
+            <svg
+                id="stadium"
+                viewBox="0 0 1000 700"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+
+                <!-- Outer bowl -->
+
+                <ellipse
+                    cx="500"
+                    cy="350"
+                    rx="450"
+                    ry="300"
+                    class="bowl"
+                />
+
+                <ellipse
+                    cx="500"
+                    cy="350"
+                    rx="390"
+                    ry="255"
+                    class="inner-bowl"
+                />
+
+
+                <!-- Seat groups generated here -->
+
+                <g id="seats"></g>
+
+
+                <!-- =====================
+                     FOOTBALL FIELD
+                ====================== -->
+
+                <rect
+                    x="320"
+                    y="235"
+                    width="360"
+                    height="230"
+                    rx="30"
+                    class="field"
+                />
+
+
+                <!-- Field stripes -->
+
+                <rect
+                    x="320"
+                    y="235"
+                    width="45"
+                    height="230"
+                    class="field-stripe"
+                />
+
+                <rect
+                    x="410"
+                    y="235"
+                    width="45"
+                    height="230"
+                    class="field-stripe"
+                />
+
+                <rect
+                    x="500"
+                    y="235"
+                    width="45"
+                    height="230"
+                    class="field-stripe"
+                />
+
+                <rect
+                    x="590"
+                    y="235"
+                    width="45"
+                    height="230"
+                    class="field-stripe"
+                />
+
+
+                <!-- Field boundary -->
+
+                <rect
+                    x="340"
+                    y="255"
+                    width="320"
+                    height="190"
+                    class="field-line"
+                />
+
+
+                <!-- Halfway -->
+
+                <line
+                    x1="500"
+                    y1="255"
+                    x2="500"
+                    y2="445"
+                    class="field-line"
+                />
+
+
+                <!-- Center -->
+
+                <circle
+                    cx="500"
+                    cy="350"
+                    r="32"
+                    class="center-circle"
+                />
+
+                <circle
+                    cx="500"
+                    cy="350"
+                    r="3"
+                    fill="white"
+                />
+
+
+                <!-- Left penalty -->
+
+                <rect
+                    x="340"
+                    y="300"
+                    width="55"
+                    height="100"
+                    class="field-line"
+                />
+
+
+                <!-- Left goal -->
+
+                <rect
+                    x="340"
+                    y="325"
+                    width="25"
+                    height="50"
+                    class="goal"
+                />
+
+
+                <!-- Right penalty -->
+
+                <rect
+                    x="605"
+                    y="300"
+                    width="55"
+                    height="100"
+                    class="field-line"
+                />
+
+
+                <!-- Right goal -->
+
+                <rect
+                    x="635"
+                    y="325"
+                    width="25"
+                    height="50"
+                    class="goal"
+                />
+
+
+                <!-- Stadium label -->
+
+                <text
+                    x="500"
+                    y="500"
+                    text-anchor="middle"
+                    fill="#ffffff"
+                    font-size="15"
+                    font-weight="bold"
+                >
+                    PITCH
+                </text>
+
+            </svg>
+
+
+            <!-- Legend -->
+
+            <div class="legend">
+
+                <div class="legend-item">
+                    <span class="legend-box legend-vip"></span>
+                    VIP
+                </div>
+
+                <div class="legend-item">
+                    <span class="legend-box legend-premium"></span>
+                    Premium
+                </div>
+
+                <div class="legend-item">
+                    <span class="legend-box legend-standard"></span>
+                    Standard
+                </div>
+
+                <div class="legend-item">
+                    <span class="legend-box legend-bronze"></span>
+                    Bronze
+                </div>
+
+                <div class="legend-item">
+                    <span class="legend-box legend-sold"></span>
+                    Sold
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             BOOKING PANEL
+        ========================== -->
+
+        <div class="panel">
+
+            <h2 id="sectionTitle">
+                Select a seat
+            </h2>
+
+            <p
+                class="muted"
+                id="instruction"
+            >
+                Click a seat on the stadium map.
+            </p>
+
+            <div class="divider"></div>
+
+
+            <div class="row">
+
+                <span>
+                    Section
+                </span>
+
+                <strong id="section">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div class="row">
+
+                <span>
+                    Row
+                </span>
+
+                <strong id="row">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div class="row">
+
+                <span>
+                    Seat
+                </span>
+
+                <strong id="seat">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div class="row">
+
+                <span>
+                    Category
+                </span>
+
+                <strong id="category">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div class="price" id="price">
+                KES 0
+            </div>
+
+
+            <div class="divider"></div>
+
+
+            <h3>
+                Selected Seats
+            </h3>
+
+
+            <div
+                class="selected-list"
+                id="selectedList"
+            >
+                No seats selected.
+            </div>
+
+
+            <div class="total">
+
+                Total:
+                <span id="total">
+                    KES 0
+                </span>
+
+            </div>
+
+
+            <button
+                id="continueButton"
+                disabled
+            >
+                Continue to Checkout
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/*
+===========================================================
+SECTION CONFIGURATION
+===========================================================
+
+This is where you control:
+
+section number
+price
+category
+number of rows
+number of seats
+===========================================================
+*/
+
+const sections = {
+
+    /* TOP */
+
+    "61": {
+        price: 5000,
+        category: "VIP",
+        rows: 5,
+        seats: 18
+    },
+
+    "62": {
+        price: 7500,
+        category: "Premium",
+        rows: 5,
+        seats: 18
+    },
+
+    "63": {
+        price: 7500,
+        category: "Premium",
+        rows: 5,
+        seats: 18
+    },
+
+    "64": {
+        price: 5000,
+        category: "VIP",
+        rows: 5,
+        seats: 18
+    },
+
+    "65": {
+        price: 5000,
+        category: "VIP",
+        rows: 5,
+        seats: 18
+    },
+
+    "66": {
+        price: 5000,
+        category: "VIP",
+        rows: 5,
+        seats: 18
+    },
+
+    "67": {
+        price: 5000,
+        category: "VIP",
+        rows: 5,
+        seats: 18
+    },
+
+    "68": {
+        price: 5000,
+        category: "VIP",
+        rows: 5,
+        seats: 18
+    },
+
+    "69": {
+        price: 5000,
+        category: "VIP",
+        rows: 5,
+        seats: 18
+    },
+
+
+    /* LEFT */
+
+    "101": {
+        price: 3000,
+        category: "Standard",
+        rows: 6,
+        seats: 14
+    },
+
+    "102": {
+        price: 3000,
+        category: "Standard",
+        rows: 6,
+        seats: 14
+    },
+
+    "103": {
+        price: 3000,
+        category: "Standard",
+        rows: 6,
+        seats: 14
+    },
+
+    "104": {
+        price: 3000,
+        category: "Standard",
+        rows: 6,
+        seats: 14
+    },
+
+    "105": {
+        price: 3000,
+        category: "Standard",
+        rows: 6,
+        seats: 14
+    },
+
+    "106": {
+        price: 3000,
+        category: "Standard",
+        rows: 6,
+        seats: 14
+    },
+
+
+    /* RIGHT */
+
+    "107": {
+        price: 3000,
+        category: "Standard",
+        rows: 6,
+        seats: 14
+    },
+
+    "108": {
+        price: 3000,
+        category: "Standard",
+        rows: 6,
+        seats: 14
+    },
+
+    "109": {
+        price: 3000,
+        category: "Standard",
+        rows: 6,
+        seats: 14
+    },
+
+    "110": {
+        price: 3000,
+        category: "Standard",
+        rows: 6,
+        seats: 14
+    },
+
+    "111": {
+        price: 3000,
+        category: "Standard",
+        rows: 6,
+        seats: 14
+    },
+
+    "112": {
+        price: 3000,
+        category: "Standard",
+        rows: 6,
+        seats: 14
+    },
+
+
+    /* BOTTOM */
+
+    "117": {
+        price: 2000,
+        category: "Bronze",
+        rows: 5,
+        seats: 18
+    },
+
+    "118": {
+        price: 2000,
+        category: "Bronze",
+        rows: 5,
+        seats: 18
+    },
+
+    "119": {
+        price: 2000,
+        category: "Bronze",
+        rows: 5,
+        seats: 18
+    },
+
+    "120": {
+        price: 2000,
+        category: "Bronze",
+        rows: 5,
+        seats: 18
+    },
+
+    "121": {
+        price: 2000,
+        category: "Bronze",
+        rows: 5,
+        seats: 18
+    },
+
+    "122": {
+        price: 2000,
+        category: "Bronze",
+        rows: 5,
+        seats: 18
+    }
+
+};
+
+
+/*
+===========================================================
+SVG
+===========================================================
+*/
+
+const svgNS =
+    "http://www.w3.org/2000/svg";
+
+const seatContainer =
+    document.getElementById("seats");
+
+
+/*
+===========================================================
+SELECTED SEATS
+===========================================================
+*/
+
+const selectedSeats = [];
+
+
+/*
+===========================================================
+UTILITY
+===========================================================
+*/
+
+function createElement(
+    type,
+    attributes
+) {
+
+    const element =
+        document.createElementNS(
+            svgNS,
+            type
+        );
+
+    for (
+        const key in attributes
+    ) {
+
+        element.setAttribute(
+            key,
+            attributes[key]
+        );
+
+    }
+
+    return element;
+
+}
+
+
+/*
+===========================================================
+CREATE TOP / BOTTOM SECTIONS
+===========================================================
+*/
+
+function createHorizontalSection(
+    sectionId,
+    centerX,
+    centerY,
+    startAngle,
+    endAngle
+) {
+
+    const data =
+        sections[sectionId];
+
+    const rows =
+        data.rows;
+
+    const seats =
+        data.seats;
+
+
+    for (
+        let row = 0;
+        row < rows;
+        row++
+    ) {
+
+        const radiusX =
+            260 + row * 18;
+
+        const radiusY =
+            165 + row * 14;
+
+
+        for (
+            let seat = 0;
+            seat < seats;
+            seat++
+        ) {
+
+            const progress =
+                seat / (seats - 1);
+
+            const angle =
+                startAngle +
+                progress *
+                (endAngle - startAngle);
+
+
+            const radians =
+                angle *
+                Math.PI /
+                180;
+
+
+            const x =
+                centerX +
+                Math.cos(radians) *
+                radiusX;
+
+            const y =
+                centerY +
+                Math.sin(radians) *
+                radiusY;
+
+
+            const circle =
+                createElement(
+                    "circle",
+                    {
+                        cx: x,
+                        cy: y,
+                        r: 4
+                    }
+                );
+
+
+            circle.classList.add(
+                "seat"
+            );
+
+            circle.classList.add(
+                data.category.toLowerCase()
+            );
+
+
+            circle.dataset.section =
+                sectionId;
+
+            circle.dataset.row =
+                String.fromCharCode(
+                    65 + row
+                );
+
+            circle.dataset.seat =
+                seat + 1;
+
+
+            /*
+            Random sold seats
+            */
+
+            if (
+                (seat + row + parseInt(sectionId)) %
+                17 ===
+                0
+            ) {
+
+                circle.classList.add(
+                    "sold"
+                );
+
+            }
+
+
+            circle.addEventListener(
+                "click",
+                function () {
+
+                    toggleSeat(
+                        circle,
+                        data
+                    );
+
+                }
+            );
+
+
+            seatContainer.appendChild(
+                circle
+            );
+
+        }
+
+    }
+
+
+    /*
+    Section label
+    */
+
+    const labelAngle =
+        (startAngle + endAngle) / 2;
+
+    const radians =
+        labelAngle *
+        Math.PI /
+        180;
+
+    const labelRadiusX =
+        350;
+
+    const labelRadiusY =
+        220;
+
+    const labelX =
+        centerX +
+        Math.cos(radians) *
+        labelRadiusX;
+
+    const labelY =
+        centerY +
+        Math.sin(radians) *
+        labelRadiusY;
+
+
+    const label =
+        createElement(
+            "text",
+            {
+                x: labelX,
+                y: labelY
+            }
+        );
+
+    label.classList.add(
+        "section-label"
+    );
+
+    label.textContent =
+        sectionId;
+
+    seatContainer.appendChild(
+        label
+    );
+
+}
+
+
+/*
+===========================================================
+TOP SECTIONS
+===========================================================
+*/
+
+const topSections = [
+    "61",
+    "62",
+    "63",
+    "64",
+    "65",
+    "66",
+    "67",
+    "68",
+    "69"
+];
+
+topSections.forEach(
+    (sectionId, index) => {
+
+        const start =
+            215 + index * 7;
+
+        const end =
+            start + 6;
+
+        createHorizontalSection(
+            sectionId,
+            500,
+            350,
+            start,
+            end
+        );
+
+    }
+);
+
+
+/*
+===========================================================
+BOTTOM SECTIONS
+===========================================================
+*/
+
+const bottomSections = [
+    "117",
+    "118",
+    "119",
+    "120",
+    "121",
+    "122"
+];
+
+bottomSections.forEach(
+    (sectionId, index) => {
+
+        const start =
+            55 + index * 8;
+
+        const end =
+            start + 7;
+
+        createHorizontalSection(
+            sectionId,
+            500,
+            350,
+            start,
+            end
+        );
+
+    }
+);
+
+
+/*
+===========================================================
+LEFT / RIGHT SECTIONS
+===========================================================
+*/
+
+function createSideSection(
+    sectionId,
+    side,
+    index
+) {
+
+    const data =
+        sections[sectionId];
+
+    const rows =
+        data.rows;
+
+    const seats =
+        data.seats;
+
+
+    const baseAngle =
+        side === "left"
+            ? 180
+            : 0;
+
+
+    const sectionSpread =
+        28;
+
+    const sectionCenter =
+        baseAngle +
+        (
+            side === "left"
+                ? -1
+                : 1
+        ) *
+        (
+            -75 +
+            index *
+            30
+        );
+
+
+    for (
+        let row = 0;
+        row < rows;
+        row++
+    ) {
+
+        const radiusX =
+            270 + row * 16;
+
+        const radiusY =
+            170 + row * 13;
+
+
+        for (
+            let seat = 0;
+            seat < seats;
+            seat++
+        ) {
+
+            const progress =
+                seat /
+                (seats - 1);
+
+
+            const angle =
+                sectionCenter -
+                sectionSpread / 2 +
+                progress *
+                sectionSpread;
+
+
+            const radians =
+                angle *
+                Math.PI /
+                180;
+
+
+            const x =
+                500 +
+                Math.cos(radians) *
+                radiusX;
+
+            const y =
+                350 +
+                Math.sin(radians) *
+                radiusY;
+
+
+            const circle =
+                createElement(
+                    "circle",
+                    {
+                        cx: x,
+                        cy: y,
+                        r: 4
+                    }
+                );
+
+
+            circle.classList.add(
+                "seat"
+            );
+
+            circle.classList.add(
+                data.category.toLowerCase()
+            );
+
+
+            circle.dataset.section =
+                sectionId;
+
+            circle.dataset.row =
+                String.fromCharCode(
+                    65 + row
+                );
+
+            circle.dataset.seat =
+                seat + 1;
+
+
+            if (
+                (seat + row + parseInt(sectionId)) %
+                19 ===
+                0
+            ) {
+
+                circle.classList.add(
+                    "sold"
+                );
+
+            }
+
+
+            circle.addEventListener(
+                "click",
+                function () {
+
+                    toggleSeat(
+                        circle,
+                        data
+                    );
+
+                }
+            );
+
+
+            seatContainer.appendChild(
+                circle
+            );
+
+        }
+
+    }
+
+
+    /*
+    Section label
+    */
+
+    const labelAngle =
+        sectionCenter;
+
+    const radians =
+        labelAngle *
+        Math.PI /
+        180;
+
+
+    const labelX =
+        500 +
+        Math.cos(radians) *
+        370;
+
+    const labelY =
+        350 +
+        Math.sin(radians) *
+        230;
+
+
+    const label =
+        createElement(
+            "text",
+            {
+                x: labelX,
+                y: labelY
+            }
+        );
+
+
+    label.classList.add(
+        "section-label"
+    );
+
+    label.textContent =
+        sectionId;
+
+
+    seatContainer.appendChild(
+        label
+    );
+
+}
+
+
+/*
+===========================================================
+CREATE LEFT
+===========================================================
+*/
+
+[
+    "101",
+    "102",
+    "103",
+    "104",
+    "105",
+    "106"
+].forEach(
+    (id, index) => {
+
+        createSideSection(
+            id,
+            "left",
+            index
+        );
+
+    }
+);
+
+
+/*
+===========================================================
+CREATE RIGHT
+===========================================================
+*/
+
+[
+    "107",
+    "108",
+    "109",
+    "110",
+    "111",
+    "112"
+].forEach(
+    (id, index) => {
+
+        createSideSection(
+            id,
+            "right",
+            index
+        );
+
+    }
+);
+
+
+/*
+===========================================================
+SEAT SELECTION
+===========================================================
+*/
+
+function toggleSeat(
+    element,
+    data
+) {
+
+    /*
+    Cannot select sold seat
+    */
+
+    if (
+        element.classList.contains(
+            "sold"
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    const section =
+        element.dataset.section;
+
+    const row =
+        element.dataset.row;
+
+    const seat =
+        element.dataset.seat;
+
+
+    const key =
+        `${section}-${row}-${seat}`;
+
+
+    const existing =
+        selectedSeats.findIndex(
+            item =>
+                item.key === key
+        );
+
+
+    /*
+    Remove selection
+    */
+
+    if (
+        existing !== -1
+    ) {
+
+        selectedSeats.splice(
+            existing,
+            1
+        );
+
+        element.classList.remove(
+            "selected"
+        );
+
+    }
+
+    /*
+    Add selection
+    */
+
+    else {
+
+        selectedSeats.push({
+
+            key: key,
+
+            section: section,
+
+            row: row,
+
+            seat: seat,
+
+            price: data.price,
+
+            category: data.category
+
+        });
+
+        element.classList.add(
+            "selected"
+        );
+
+    }
+
+
+    updatePanel();
+
+}
+
+
+/*
+===========================================================
+UPDATE PANEL
+===========================================================
+*/
+
+function updatePanel() {
+
+    const sectionText =
+        document.getElementById(
+            "section"
+        );
+
+    const rowText =
+        document.getElementById(
+            "row"
+        );
+
+    const seatText =
+        document.getElementById(
+            "seat"
+        );
+
+    const categoryText =
+        document.getElementById(
+            "category"
+        );
+
+    const priceText =
+        document.getElementById(
+            "price"
+        );
+
+    const list =
+        document.getElementById(
+            "selectedList"
+        );
+
+    const totalText =
+        document.getElementById(
+            "total"
+        );
+
+    const continueButton =
+        document.getElementById(
+            "continueButton"
+        );
+
+
+    /*
+    Nothing selected
+    */
+
+    if (
+        selectedSeats.length === 0
+    ) {
+
+        sectionText.textContent =
+            "—";
+
+        rowText.textContent =
+            "—";
+
+        seatText.textContent =
+            "—";
+
+        categoryText.textContent =
+            "—";
+
+        priceText.textContent =
+            "KES 0";
+
+        list.textContent =
+            "No seats selected.";
+
+        totalText.textContent =
+            "KES 0";
+
+        continueButton.disabled =
+            true;
+
+        return;
+
+    }
+
+
+    /*
+    Last selected seat
+    */
+
+    const last =
+        selectedSeats[
+            selectedSeats.length - 1
+        ];
+
+
+    sectionText.textContent =
+        last.section;
+
+    rowText.textContent =
+        last.row;
+
+    seatText.textContent =
+        last.seat;
+
+    categoryText.textContent =
+        last.category;
+
+    priceText.textContent =
+        `KES ${last.price.toLocaleString()}`;
+
+
+    /*
+    List
+    */
+
+    list.innerHTML = "";
+
+
+    selectedSeats.forEach(
+        item => {
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+            div.className =
+                "selected-seat";
+
+
+            div.innerHTML = `
+                <span>
+                    Section ${item.section}
+                    · Row ${item.row}
+                    · Seat ${item.seat}
+                </span>
+
+                <strong>
+                    KES ${item.price.toLocaleString()}
+                </strong>
+            `;
+
+
+            list.appendChild(
+                div
+            );
+
+        }
+    );
+
+
+    /*
+    Total
+    */
+
+    const total =
+        selectedSeats.reduce(
+            (
+                sum,
+                item
+            ) =>
+                sum + item.price,
+            0
+        );
+
+
+    totalText.textContent =
+        `KES ${total.toLocaleString()}`;
+
+
+    continueButton.disabled =
+        false;
+
+}
+
+
+/*
+===========================================================
+CHECKOUT
+===========================================================
+*/
+
+document
+    .getElementById(
+        "continueButton"
+    )
+    .addEventListener(
+        "click",
+        function () {
+
+            if (
+                selectedSeats.length === 0
+            ) {
+
+                return;
+
+            }
+
+
+            const total =
+                selectedSeats.reduce(
+                    (
+                        sum,
+                        item
+                    ) =>
+                        sum + item.price,
+                    0
+                );
+
+
+            alert(
+                `Seats selected: ${selectedSeats.length}\n` +
+                `Total: KES ${total.toLocaleString()}`
+            );
+
+        }
+    );
+
+</script>
+
+<footer class="site-shell-footer">
+    <div class="site-shell-footer-inner">
+        <div class="site-shell-sponsor-group"><h2>Official title sponsor</h2><div class="site-shell-sponsors"><a href="#"><img src="img/afcon25_sponsors-te_28107f5b5e.png" alt="TotalEnergies"></a></div></div>
+        <div class="site-shell-sponsor-group"><h2>Official global partners</h2><div class="site-shell-sponsors"><a href="#"><img src="img/afcon25_sponsors-1xbet_76c7900846.png" alt="1xBet"></a><a href="#"><img src="img/afcon25_sponsors-eu_8cd3d50b45.png" alt="European Union"></a><a href="#"><img src="img/afcon25_sponsors-visa_f995c7505b.png" alt="Visa"></a><a href="#"><img src="img/afcon25_sponsors-tecno_375816cc22.png" alt="Tecno"></a><a href="#"><img src="img/afcon25_sponsors-puma_960a43e0fc.png" alt="Puma"></a><a href="#"><img src="img/sponsor-suzuki_3f44de9a7f.png" alt="Suzuki"></a></div></div>
+        <div class="site-shell-sponsor-group"><h2>Official suppliers</h2><div class="site-shell-sponsors"><a href="#"><img src="img/afcon25_sponsors-agl_3465c09341.png" alt="Africa Global Logistics"></a><a href="#"><img src="img/afcon25_sponsors-lonaci_928fe7605b.png" alt="LONACI"></a><a href="#"><img src="img/afcon25_sponsors-website_sidi-ali_85b357069a.png" alt="Sidi Ali"></a></div></div>
+        <div class="site-shell-footer-bottom"><span>AFCON PAMOJA 2027 Ticketing</span><span>Official tournament partners and suppliers</span></div>
+    </div>
+</footer>
+
+    <script src="header-menu.js"></script>
+</body>
+</html>

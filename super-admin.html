@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AFCON PAMOJA 2027 | Super Admin</title>
+  <link rel="stylesheet" href="site-shell.css">
+  <link rel="icon" type="image/svg+xml" href="img/caf-logo-header.svg">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Outfit', 'sans-serif'], mono: ['monospace'] } } } };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root { color-scheme: dark; }
+    body { background: #061016; background-image: radial-gradient(circle at 90% 0%, rgba(16,185,129,.13), transparent 32rem), linear-gradient(135deg, #061016, #0b1720 55%, #101b1b); }
+    .panel { background: rgba(10, 24, 31, .88); border: 1px solid rgba(148, 163, 184, .16); backdrop-filter: blur(14px); }
+    .input { background: rgba(2, 8, 23, .65); border: 1px solid #243441; }
+    .input:focus { outline: 2px solid rgba(245, 158, 11, .35); border-color: #f59e0b; }
+  </style>
+</head>
+<body class="min-h-screen font-sans text-slate-200">
+  
+
+    <div class="flex items-center justify-between gap-4 border-b border-slate-800 pb-3">
+      <div class="flex items-center gap-2">
+        <a href="index.html" class="flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20">
+          <span>← Back to Ticketing Portal</span>
+        </a>
+        <span class="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-mono text-emerald-400 border border-emerald-500/30">● Realtime Sync Active</span>
+      </div>
+      <div class="text-xs font-mono text-slate-400">
+        Database: <span id="db-mode-indicator" class="text-amber-400 font-semibold">Local Ledger / Supabase Ready</span>
+      </div>
+    </div>
+
+    <section class="panel rounded-2xl p-5 shadow-2xl sm:p-7">
+      <div class="flex flex-col justify-between gap-5 border-b border-slate-800 pb-5 lg:flex-row lg:items-end">
+        <div><span class="text-xs font-mono uppercase tracking-widest text-emerald-400">Secure operations view</span><h1 class="mt-2 font-display text-3xl font-black text-white sm:text-4xl">Tournament control room</h1><p class="mt-2 max-w-2xl text-sm text-slate-400">Monitor sales, tune ticket pricing, and manage fan ticket records from one admin-only workspace.</p></div>
+        <div class="flex items-center gap-2">
+          <button onclick="resetToDefaults()" class="rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-xs font-semibold text-slate-300 hover:bg-slate-800">Reset Demo Data</button>
+          <button onclick="addBooking()" class="rounded-xl bg-amber-500 px-4 py-3 text-xs font-bold text-slate-950 shadow-lg shadow-amber-500/20 hover:bg-amber-400">+ Ingest booking</button>
+        </div>
+      </div>
+      <div class="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-4"><p class="text-[10px] font-mono uppercase text-slate-500">Gross revenue</p><p id="kpi-gross-revenue" class="mt-2 font-display text-2xl font-black text-amber-400">KES 14.85M</p><span class="text-[10px] text-emerald-400">+24.8% vs 2024</span></div>
+        <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-4"><p class="text-[10px] font-mono uppercase text-slate-500">Seats dispatched</p><p id="kpi-seats-count" class="mt-2 font-display text-2xl font-black text-white">3,492</p><span id="kpi-capacity-rate" class="text-[10px] text-sky-400">5.8% capacity</span></div>
+        <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-4"><p class="text-[10px] font-mono uppercase text-slate-500">YALLA verified</p><p id="kpi-verified-rate" class="mt-2 font-display text-2xl font-black text-emerald-400">100%</p><span class="text-[10px] text-emerald-300">No fraud flags</span></div>
+        <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-4"><p class="text-[10px] font-mono uppercase text-slate-500">M-Pesa settlement</p><p id="kpi-mpesa-rate" class="mt-2 font-display text-2xl font-black text-emerald-400">98.4%</p><span class="text-[10px] text-slate-400">4.2 sec average</span></div>
+      </div>
+    </section>
+
+    <section class="panel rounded-2xl p-5 shadow-xl sm:p-7">
+      <div class="flex flex-col justify-between gap-3 border-b border-slate-800 pb-4 sm:flex-row sm:items-center"><div><span class="text-xs font-mono uppercase tracking-widest text-amber-400">Commercial rules</span><h2 class="mt-1 font-display text-xl font-bold text-white">Global ticket pricing</h2></div><div class="flex items-center gap-2"><button onclick="applyPeakPricing()" class="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-300 hover:bg-amber-500/20">Apply +15% peak pricing</button><button onclick="resetDefaultPricing()" class="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700">Reset base prices</button></div></div>
+      <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <label class="space-y-2"><span class="text-xs font-semibold text-amber-300">VVIP suite</span><div class="flex items-center gap-2"><span class="text-xs text-slate-500">KES</span><input id="price-vvip" type="number" value="25000" class="input w-full rounded-lg px-3 py-2 font-mono text-sm"></div></label>
+        <label class="space-y-2"><span class="text-xs font-semibold text-sky-300">Category 1</span><div class="flex items-center gap-2"><span class="text-xs text-slate-500">KES</span><input id="price-cat1" type="number" value="5000" class="input w-full rounded-lg px-3 py-2 font-mono text-sm"></div></label>
+        <label class="space-y-2"><span class="text-xs font-semibold text-emerald-300">Category 2</span><div class="flex items-center gap-2"><span class="text-xs text-slate-500">KES</span><input id="price-cat2" type="number" value="2500" class="input w-full rounded-lg px-3 py-2 font-mono text-sm"></div></label>
+        <label class="space-y-2"><span class="text-xs font-semibold text-orange-300">Category 3</span><div class="flex items-center gap-2"><span class="text-xs text-slate-500">KES</span><input id="price-cat3" type="number" value="1000" class="input w-full rounded-lg px-3 py-2 font-mono text-sm"></div></label>
+      </div>
+      <div class="mt-5 flex items-center justify-between"><span class="text-[11px] text-slate-400 font-mono">Changes automatically sync to consumer portal (index.html)</span><button onclick="savePricing()" class="rounded-xl bg-emerald-500 px-5 py-3 text-xs font-bold text-slate-950 hover:bg-emerald-400">Publish pricing changes</button></div>
+    </section>
+
+    <section class="panel rounded-2xl p-5 shadow-xl sm:p-7">
+      <div class="flex flex-col justify-between gap-3 border-b border-slate-800 pb-4 sm:flex-row sm:items-center"><div><span class="text-xs font-mono uppercase tracking-widest text-sky-400">Live ledger</span><h2 class="mt-1 font-display text-xl font-bold text-white">Recent bookings</h2></div><div class="flex gap-2"><input id="search" oninput="renderBookings()" class="input w-full rounded-lg px-3 py-2 text-xs sm:w-64" placeholder="Search fan or ticket ID"><select id="status" onchange="renderBookings()" class="input rounded-lg px-3 py-2 text-xs"><option value="all">All statuses</option><option>Paid</option><option>Pending</option><option>Revoked</option></select></div></div>
+      <div class="mt-5 overflow-x-auto rounded-xl border border-slate-800"><table class="w-full min-w-[760px] text-left text-xs"><thead class="bg-slate-950/70 font-mono uppercase text-slate-500"><tr><th class="p-3">Fan</th><th class="p-3">YALLA ID</th><th class="p-3">Match / seat</th><th class="p-3">Amount</th><th class="p-3">Status</th><th class="p-3 text-right">Action</th></tr></thead><tbody id="bookingRows" class="divide-y divide-slate-800"></tbody></table></div>
+    </section>
+  </main>
+  <div id="notice" class="fixed bottom-5 right-5 hidden rounded-xl border border-emerald-500/40 bg-emerald-950/90 px-4 py-3 text-xs text-emerald-200 shadow-2xl"></div>
+
+  <script>
+    const DEFAULT_BOOKINGS = [
+      { fan: 'Kipchumba J. Kiprop', id: 'YALLA-KE-2027-98124A', seat: 'Kasarani / Cat 1 - Row B #04', amount: 5000, status: 'Paid', paymentMethod: 'M-Pesa' },
+      { fan: 'Sadio M. Diallo', id: 'YALLA-SN-2027-11840C', seat: 'Kasarani / VVIP Lounge Suite #02', amount: 25000, status: 'Paid', paymentMethod: 'Card' },
+      { fan: 'Amani Bakari', id: 'YALLA-TZ-2027-78320K', seat: 'Nyayo / Cat 2 - East Flank #12', amount: 2500, status: 'Pending', paymentMethod: 'M-Pesa' },
+      { fan: 'Denis Kato', id: 'YALLA-UG-2027-66219X', seat: 'Kipchoge Keino / Cat 3 - North Goal #08', amount: 1000, status: 'Paid', paymentMethod: 'M-Pesa' },
+      { fan: 'Amina Nour', id: 'YALLA-EG-2027-33910M', seat: 'Kasarani / Cat 1 - Row A #14', amount: 5000, status: 'Paid', paymentMethod: 'Card' }
+    ];
+
+    const DEFAULT_PRICING = {
+      vvip: 25000,
+      cat1: 5000,
+      cat2: 2500,
+      cat3: 1000
+    };
+
+    let bookings = [];
+
+    // Supabase configurations (ready for production)
+    const SUPABASE_CONFIG = {
+      url: 'https://YOUR_SUPABASE_PROJECT.supabase.co',
+      anonKey: 'YOUR_ANON_KEY',
+      isConfigured: false
+    };
+
+    function initStorage() {
+      // Load pricing from localStorage or fallback to default
+      const savedPricing = localStorage.getItem('afcon_pricing');
+      if (savedPricing) {
+        try {
+          const p = JSON.parse(savedPricing);
+          if (p.vvip) document.getElementById('price-vvip').value = p.vvip;
+          if (p.cat1) document.getElementById('price-cat1').value = p.cat1;
+          if (p.cat2) document.getElementById('price-cat2').value = p.cat2;
+          if (p.cat3) document.getElementById('price-cat3').value = p.cat3;
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        localStorage.setItem('afcon_pricing', JSON.stringify(DEFAULT_PRICING));
+      }
+
+      // Load bookings from localStorage or fallback
+      const savedBookings = localStorage.getItem('afcon_bookings');
+      if (savedBookings) {
+        try {
+          bookings = JSON.parse(savedBookings);
+        } catch (e) {
+          bookings = [...DEFAULT_BOOKINGS];
+        }
+      } else {
+        bookings = [...DEFAULT_BOOKINGS];
+        localStorage.setItem('afcon_bookings', JSON.stringify(bookings));
+      }
+
+      renderBookings();
+      updateKpis();
+    }
+
+    async function loadBookings() {
+      initStorage();
+
+      // Attempt Supabase fetch if active
+      if (SUPABASE_CONFIG.url && !SUPABASE_CONFIG.url.includes('YOUR_SUPABASE_PROJECT')) {
+        try {
+          const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/bookings`, {
+            headers: {
+              apikey: SUPABASE_CONFIG.anonKey,
+              Authorization: `Bearer ${SUPABASE_CONFIG.anonKey}`,
+              Prefer: 'return=representation',
+            },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.length) {
+              bookings = data;
+              localStorage.setItem('afcon_bookings', JSON.stringify(bookings));
+              renderBookings();
+              updateKpis();
+              notify('Bookings synchronized with Supabase');
+            }
+          }
+        } catch (e) {
+          console.warn('Supabase offline or unreachable, using local persistent ledger.', e);
+        }
+      }
+    }
+
+    function updateKpis() {
+      const paidBookings = bookings.filter(b => b.status === 'Paid');
+      const totalRevenue = paidBookings.reduce((sum, b) => sum + (Number(b.amount) || 2500), 0) + 14850000;
+      const totalSeats = bookings.length + 3492;
+      
+      const revElem = document.getElementById('kpi-gross-revenue');
+      if (revElem) {
+        if (totalRevenue >= 1000000) {
+          revElem.textContent = `KES ${(totalRevenue / 1000000).toFixed(2)}M`;
+        } else {
+          revElem.textContent = `KES ${totalRevenue.toLocaleString()}`;
+        }
+      }
+
+      const seatsElem = document.getElementById('kpi-seats-count');
+      if (seatsElem) seatsElem.textContent = totalSeats.toLocaleString();
+
+      const capElem = document.getElementById('kpi-capacity-rate');
+      if (capElem) capElem.textContent = `${((totalSeats / 60000) * 100).toFixed(1)}% Kasarani capacity`;
+    }
+
+    function renderBookings() {
+      const query = (document.getElementById('search').value || '').toLowerCase();
+      const status = document.getElementById('status').value;
+      
+      const filtered = bookings.filter(b => 
+        (status === 'all' || b.status === status) &&
+        `${b.fan} ${b.id} ${b.seat}`.toLowerCase().includes(query)
+      );
+
+      document.getElementById('bookingRows').innerHTML = filtered.map((b, i) => `
+        <tr class="hover:bg-slate-900/40 transition">
+          <td class="p-3 font-semibold text-white">${b.fan}</td>
+          <td class="p-3 font-mono text-amber-300 font-bold">${b.id}</td>
+          <td class="p-3 text-slate-300">${b.seat}</td>
+          <td class="p-3 font-mono text-emerald-400">KES ${(b.amount || 2500).toLocaleString()}</td>
+          <td class="p-3">
+            <span class="rounded-full border px-2.5 py-1 text-[10px] font-mono ${
+              b.status === 'Paid' 
+                ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' 
+                : b.status === 'Pending' 
+                ? 'border-amber-500/30 bg-amber-500/10 text-amber-300' 
+                : 'border-red-500/30 bg-red-500/10 text-red-300'
+            }">${b.status}</span>
+          </td>
+          <td class="p-3 text-right">
+            <button onclick="toggleBooking(${i})" class="rounded-lg border border-slate-700 px-2.5 py-1 text-[10px] font-medium text-slate-300 hover:bg-slate-800 transition">
+              ${b.status === 'Revoked' ? 'Restore' : 'Revoke'}
+            </button>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="6" class="p-6 text-center text-slate-500">No matching bookings.</td></tr>';
+    }
+
+    function toggleBooking(index) {
+      bookings[index].status = bookings[index].status === 'Revoked' ? 'Paid' : 'Revoked';
+      saveBookingsToStorage();
+      renderBookings();
+      updateKpis();
+      notify('Booking status updated & synchronized');
+    }
+
+    function addBooking() {
+      const names = ['Otieno Lumumba', 'Fatou Cisse', 'Juma Mwamburi', 'Kwame Mensah', 'Nadine Uwase'];
+      const randomName = names[Math.floor(Math.random() * names.length)];
+      const randomSec = ['Kasarani / Cat 1 - Row A #12', 'Kasarani / VVIP Lounge Suite #08', 'Kasarani / Cat 2 - East #24', 'Kasarani / Cat 3 - North #06'][Math.floor(Math.random() * 4)];
+      const amounts = [5000, 25000, 2500, 1000];
+
+      const newBooking = {
+        fan: randomName,
+        id: `YALLA-AF-2027-${Math.floor(10000 + Math.random() * 89999)}`,
+        seat: randomSec,
+        amount: amounts[Math.floor(Math.random() * amounts.length)],
+        status: 'Paid',
+        paymentMethod: 'M-Pesa'
+      };
+
+      bookings.unshift(newBooking);
+      saveBookingsToStorage();
+      renderBookings();
+      updateKpis();
+      notify(`New booking ingested: ${newBooking.fan}`);
+    }
+
+    function saveBookingsToStorage() {
+      localStorage.setItem('afcon_bookings', JSON.stringify(bookings));
+    }
+
+    function applyPeakPricing() {
+      ['price-vvip', 'price-cat1', 'price-cat2', 'price-cat3'].forEach(id => {
+        const input = document.getElementById(id);
+        input.value = Math.round(Number(input.value) * 1.15);
+      });
+      savePricing();
+      notify('Peak pricing (+15%) published and synced');
+    }
+
+    function resetDefaultPricing() {
+      document.getElementById('price-vvip').value = DEFAULT_PRICING.vvip;
+      document.getElementById('price-cat1').value = DEFAULT_PRICING.cat1;
+      document.getElementById('price-cat2').value = DEFAULT_PRICING.cat2;
+      document.getElementById('price-cat3').value = DEFAULT_PRICING.cat3;
+      savePricing();
+      notify('Pricing reset to default tournament tier');
+    }
+
+    function resetToDefaults() {
+      bookings = [...DEFAULT_BOOKINGS];
+      saveBookingsToStorage();
+      resetDefaultPricing();
+      renderBookings();
+      updateKpis();
+      notify('Demo data reset to baseline');
+    }
+
+    async function savePricing() {
+      const pricing = {
+        vvip: Number(document.getElementById('price-vvip').value) || 25000,
+        cat1: Number(document.getElementById('price-cat1').value) || 5000,
+        cat2: Number(document.getElementById('price-cat2').value) || 2500,
+        cat3: Number(document.getElementById('price-cat3').value) || 1000,
+      };
+
+      // Save to localStorage immediately so index.html syncs instantly
+      localStorage.setItem('afcon_pricing', JSON.stringify(pricing));
+
+      // Also attempt Supabase PATCH if configured
+      if (SUPABASE_CONFIG.url && !SUPABASE_CONFIG.url.includes('YOUR_SUPABASE_PROJECT')) {
+        try {
+          await fetch(`${SUPABASE_CONFIG.url}/rest/v1/pricing`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: SUPABASE_CONFIG.anonKey,
+              Authorization: `Bearer ${SUPABASE_CONFIG.anonKey}`,
+            },
+            body: JSON.stringify(pricing),
+          });
+        } catch (e) {
+          console.warn('Supabase pricing sync deferred to local storage', e);
+        }
+      }
+
+      notify('Pricing changes published! Synced to consumer portal.');
+    }
+
+    function notify(message) {
+      const notice = document.getElementById('notice');
+      notice.textContent = message;
+      notice.classList.remove('hidden');
+      setTimeout(() => notice.classList.add('hidden'), 2800);
+    }
+
+    // Storage event listener: whenever index.html makes a booking or updates data, refresh immediately
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'afcon_bookings') {
+        try {
+          bookings = JSON.parse(event.newValue) || [];
+          renderBookings();
+          updateKpis();
+          notify('Live booking update received from fan portal!');
+        } catch (e) {}
+      }
+      if (event.key === 'afcon_pricing') {
+        try {
+          const p = JSON.parse(event.newValue);
+          if (p.vvip) document.getElementById('price-vvip').value = p.vvip;
+          if (p.cat1) document.getElementById('price-cat1').value = p.cat1;
+          if (p.cat2) document.getElementById('price-cat2').value = p.cat2;
+          if (p.cat3) document.getElementById('price-cat3').value = p.cat3;
+        } catch (e) {}
+      }
+    });
+
+    loadBookings();
+  </script>
+  <script src="header-menu.js"></script>
+</body>
+</html>

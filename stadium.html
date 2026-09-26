@@ -1,0 +1,2079 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAF Africa Nations Championship | Official Smart Stadium Simulation & Ticketing Matrix</title>
+  <link rel="stylesheet" href="site-shell.css">
+  <link rel="icon" type="image/svg+xml" href="img/caf-logo-header.svg">
+  
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN with configuration -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              gold: '#F59E0B',
+              goldLight: '#FBBF24',
+              goldDark: '#D97706',
+              emerald: '#10B981',
+              emeraldDark: '#059669',
+              dark: '#030712',
+              darkCard: '#0B1120',
+              darkBorder: '#1E293B',
+              accent: '#38BDF8'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          animation: {
+            'pulse-slow': 'pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'glow-emerald': 'glowEmerald 2s ease-in-out infinite alternate',
+            'glow-amber': 'glowAmber 2s ease-in-out infinite alternate',
+          },
+          keyframes: {
+            glowEmerald: {
+              '0%': { boxShadow: '0 0 5px rgba(16, 185, 129, 0.3)' },
+              '100%': { boxShadow: '0 0 20px rgba(16, 185, 129, 0.8)' }
+            },
+            glowAmber: {
+              '0%': { boxShadow: '0 0 5px rgba(245, 158, 11, 0.3)' },
+              '100%': { boxShadow: '0 0 20px rgba(245, 158, 11, 0.7)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0B1120;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1E293B;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+
+    /* Pitch Stripes Gradient */
+    .pitch-grass {
+      background: repeating-linear-gradient(
+        0deg,
+        #064e3b,
+        #064e3b 24px,
+        #047857 24px,
+        #047857 48px
+      );
+    }
+
+    /* Running Track Pattern */
+    .tartan-track {
+      background: repeating-linear-gradient(
+        90deg,
+        #991b1b,
+        #991b1b 12px,
+        #7f1d1d 12px,
+        #7f1d1d 24px
+      );
+    }
+
+    /* Direct Stadium Bowl Styling */
+    .stadium-bowl-wrapper {
+      background: radial-gradient(ellipse at center, #0B1120 0%, #030712 100%);
+      border: 1px solid #1E293B;
+    }
+
+    /* Section Bay interactive states */
+    .stadium-section-bay {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .stadium-section-bay:hover:not(.bay-occupied) {
+      transform: translateY(-2px) scale(1.02);
+      filter: brightness(1.2);
+      z-index: 10;
+    }
+    .bay-occupied {
+      opacity: 0.35;
+      filter: grayscale(0.85);
+      cursor: not-allowed !important;
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(15, 23, 42, 0.9),
+        rgba(15, 23, 42, 0.9) 6px,
+        rgba(30, 41, 59, 0.6) 6px,
+        rgba(30, 41, 59, 0.6) 12px
+      ) !important;
+    }
+
+    /* Seat Dot Direct Map Nodes */
+    .map-seat-node {
+      transition: all 0.15s ease-in-out;
+    }
+    .map-seat-node:hover:not(.seat-node-occupied) {
+      transform: scale(1.45);
+      z-index: 30;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+    .seat-node-occupied {
+      opacity: 0.28;
+      cursor: not-allowed !important;
+      background-color: #334155 !important;
+      border-color: #1e293b !important;
+    }
+    .seat-node-selected {
+      background-color: #10B981 !important;
+      border-color: #6ee7b7 !important;
+      box-shadow: 0 0 12px #10B981, 0 0 4px #fff !important;
+      animation: pulse 1.5s infinite;
+      z-index: 25;
+      transform: scale(1.25);
+    }
+
+    .benchmark-map {
+      width: 100%;
+      height: auto;
+      display: block;
+      min-height: 360px;
+      background: radial-gradient(ellipse at center, #111c2b 0%, #030712 74%);
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+    }
+
+    .benchmark-bowl {
+      fill: #111827;
+      stroke: #334155;
+      stroke-width: 3;
+    }
+
+    .benchmark-inner-bowl {
+      fill: #0f172a;
+      stroke: #475569;
+      stroke-width: 2;
+    }
+
+    .benchmark-seat {
+      stroke: #020617;
+      stroke-width: .9;
+      cursor: pointer;
+      transition: r .12s ease, filter .12s ease, opacity .12s ease;
+    }
+
+    .benchmark-seat:hover:not(.benchmark-seat-sold) {
+      r: 5.5;
+      stroke: #fff;
+      stroke-width: 1.5;
+      filter: drop-shadow(0 0 4px rgba(255,255,255,.7));
+    }
+
+    .benchmark-seat-sold {
+      fill: #334155 !important;
+      opacity: .32;
+      cursor: not-allowed;
+    }
+
+    .benchmark-seat-selected {
+      fill: #f59e0b !important;
+      stroke: #fff;
+      stroke-width: 1.7;
+      filter: drop-shadow(0 0 5px rgba(245,158,11,.9));
+    }
+
+    .benchmark-label {
+      fill: #cbd5e1;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      pointer-events: none;
+    }
+
+    .benchmark-field { fill: #15803d; stroke: #86efac; stroke-width: 2; }
+    .benchmark-field-stripe { fill: rgba(255,255,255,.08); }
+    .benchmark-field-line { fill: none; stroke: rgba(255,255,255,.75); stroke-width: 2; }
+
+    /* Glassmorphism */
+    .glass-panel {
+      background: rgba(11, 17, 32, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-input {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(51, 65, 85, 0.8);
+    }
+    .glass-input:focus {
+      border-color: #F59E0B;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen antialiased flex flex-col selection:bg-amber-500 selection:text-slate-950 overflow-x-hidden">
+
+  <nav class="site-public-nav" aria-label="Main navigation"><div class="site-shell-flag-key" aria-label="Flag colors for Tanzania, Kenya and Uganda"><span class="flag-tz">Tanzania</span><span class="flag-ke">Kenya</span><span class="flag-ug">Uganda</span></div><div class="site-public-nav-inner"><a class="site-public-nav-brand" href="index.html"><img src="img/caf-logo-header.svg" alt="CAF"><span>AFCON PAMOJA 2026</span></a><div class="site-public-nav-links"><a href="index.html">Home</a><a href="about.html">About us</a><a href="fixtures.html">Fixtures</a><a href="venues.html">Venues</a><a href="faq.html">FAQ</a><a href="contact.html">Contact us</a><a class="nav-ticket-link" href="index.html">Get tickets</a></div></div></nav>
+
+  <!-- ==================== MAIN VIEW: FAN DISCOVERY & DIRECT STADIUM SIMULATION ==================== -->
+  <main id="view-fan-portal" class="flex-1 max-w-[1720px] w-full mx-auto p-3 sm:p-5 lg:p-6 transition-all duration-300">
+    
+    <!-- Top Row: Auth Terminal & YALLA Pass Verification Card -->
+    <div class="mb-5 glass-panel rounded-2xl p-4 sm:p-5 border border-slate-800/90 shadow-xl relative overflow-hidden">
+      <div class="absolute -top-24 -right-24 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+        
+        <!-- Left Sub-Block: Authentication Terminal -->
+        <div class="lg:col-span-5 border-b lg:border-b-0 lg:border-r border-slate-800/80 pb-4 lg:pb-0 lg:pr-5">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <div class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+              </div>
+              <h2 class="text-sm font-semibold tracking-wide text-slate-200">User Authentication Terminal</h2>
+            </div>
+
+            <!-- Toggle Auth Mode -->
+            <div class="flex bg-slate-900/90 p-0.5 rounded-lg border border-slate-800 text-[11px]">
+              <button id="auth-tab-email" onclick="setAuthMode('email')" class="px-2.5 py-1 rounded-md bg-slate-800 text-amber-400 font-medium transition">Email + Pass</button>
+              <button id="auth-tab-phone" onclick="setAuthMode('phone')" class="px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition">Phone + OTP</button>
+            </div>
+          </div>
+
+          <!-- Auth Inputs -->
+          <div id="auth-email-form" class="space-y-2.5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Fan Email Address</label>
+                <input type="email" id="fan-input-email" value="kipchumba.kiprop@eastafricafan.co.ke" class="w-full glass-input text-xs text-slate-200 rounded-lg px-3 py-2 outline-none focus:border-amber-500 font-mono transition">
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Account Security Key</label>
+                <input type="password" value="••••••••••••" class="w-full glass-input text-xs text-slate-200 rounded-lg px-3 py-2 outline-none focus:border-amber-500 font-mono transition">
+              </div>
+            </div>
+          </div>
+
+          <div id="auth-phone-form" class="hidden space-y-2.5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Safaricom / Airtel Mobile</label>
+                <input type="tel" id="fan-input-phone" value="+254 712 849 320" class="w-full glass-input text-xs text-slate-200 rounded-lg px-3 py-2 outline-none focus:border-amber-500 font-mono transition">
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">6-Digit SMS OTP</label>
+                <div class="flex gap-1.5">
+                  <input type="text" maxlength="6" value="782910" class="w-full glass-input text-xs text-slate-200 rounded-lg px-3 py-2 outline-none focus:border-amber-500 font-mono text-center tracking-widest">
+                  <button class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-400 text-[10px] rounded-lg border border-slate-700 whitespace-nowrap">Resend</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Sub-Block: YALLA Fan ID Security Verification -->
+        <div class="lg:col-span-7">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold">✓</span>
+              <label class="text-xs font-semibold text-slate-200 uppercase tracking-wider">Integrated YALLA Fan ID Clearance Matrix</label>
+            </div>
+            <span class="text-[11px] text-slate-400">Mandatory for CAF Stadium Entry Security Gate</span>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+            <div class="relative flex-1">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
+                </svg>
+              </div>
+              <input type="text" id="yalla-id-input" value="YALLA-KE-2026-98124A" class="w-full glass-input text-xs font-mono font-semibold text-amber-400 pl-9 pr-3 py-2.5 rounded-xl outline-none uppercase tracking-wider">
+            </div>
+
+            <button id="btn-verify-yalla" onclick="triggerYallaVerification()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-semibold text-xs transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95">
+              <span id="yalla-btn-text">Verify Pass ID</span>
+              <svg id="yalla-btn-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Dynamic Verification Result Container -->
+          <div id="yalla-verification-result" class="mt-2.5 hidden">
+            <div class="p-2.5 rounded-xl bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-xs flex flex-wrap items-center justify-between gap-2 animate-glow-emerald">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-xs">✓</div>
+                <div>
+                  <span class="font-bold text-emerald-200">VERIFIED:</span> 
+                  <span class="font-medium text-emerald-100">Kipchumba J. Kiprop</span> 
+                  <span class="bg-emerald-900/90 text-emerald-200 px-1.5 py-0.5 rounded text-[10px] ml-1 font-mono">Kenyan 🇰🇪</span>
+                </div>
+              </div>
+              <div class="text-[11px] font-mono text-emerald-400/90 flex items-center gap-2">
+                <span>Passport: <b class="text-white">A09823419</b></span>
+                <span class="hidden sm:inline">• Gate FastTrack Active</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================== 3-COLUMN DESKTOP / 2-COLUMN TABLET / 1-COLUMN MOBILE LAYOUT ==================== -->
+    <div class="grid grid-cols-1 md:grid-cols-12 lg:grid-cols-12 gap-5">
+      
+      <!-- ==================== LEFT COLUMN: MATCH DISCOVERY & VENUE MATRIX (3 Cols) ==================== -->
+      <section class="md:col-span-5 lg:col-span-3 space-y-4">
+        
+        <!-- Filter Ribbon Box -->
+        <div class="glass-panel rounded-2xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+              </svg>
+              Stadium & Fixture Matrix
+            </h3>
+            <span class="text-[10px] font-mono text-slate-500" id="filter-match-count">3 Fixtures</span>
+          </div>
+
+          <!-- Location Filters -->
+          <div class="mb-3">
+            <label class="block text-[10px] uppercase font-semibold text-slate-400 mb-1.5 tracking-wider">Host Stadium (Select Arena)</label>
+            <div class="grid grid-cols-1 gap-1.5" id="venue-filter-buttons">
+              <button onclick="filterMatches('venue', 'all')" class="venue-filter-btn px-2.5 py-2 rounded-lg text-xs font-semibold bg-amber-500 text-slate-950 text-left transition flex items-center justify-between" data-filter="all">
+                <span>All Championship Arenas</span>
+                <span class="text-[10px] font-mono opacity-80">3 Arenas</span>
+              </button>
+              <button onclick="filterMatches('venue', 'kasarani')" class="venue-filter-btn px-2.5 py-2 rounded-lg text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 text-left transition border border-slate-800 flex items-center justify-between" data-filter="kasarani">
+                <span>Moi Sports Centre Kasarani 🏟️</span>
+                <span class="text-[10px] font-mono text-amber-400">60k Seats</span>
+              </button>
+              <button onclick="filterMatches('venue', 'nyayo')" class="venue-filter-btn px-2.5 py-2 rounded-lg text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 text-left transition border border-slate-800 flex items-center justify-between" data-filter="nyayo">
+                <span>Nyayo National Stadium ⚡</span>
+                <span class="text-[10px] font-mono text-blue-400">30k Seats</span>
+              </button>
+              <button onclick="filterMatches('venue', 'eldoret')" class="venue-filter-btn px-2.5 py-2 rounded-lg text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 text-left transition border border-slate-800 flex items-center justify-between" data-filter="eldoret">
+                <span>Kipchoge Keino Stadium Eldoret 🏔️</span>
+                <span class="text-[10px] font-mono text-emerald-400">15k Seats</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Tournament Stage Filters -->
+          <div>
+            <label class="block text-[10px] uppercase font-semibold text-slate-400 mb-1.5 tracking-wider">Stage Filter</label>
+            <div class="flex flex-wrap gap-1.5" id="stage-filter-buttons">
+              <button onclick="filterMatches('stage', 'all')" class="stage-filter-btn px-2 py-1 rounded-md text-[11px] font-medium bg-amber-500 text-slate-950 font-semibold transition" data-stage="all">All</button>
+              <button onclick="filterMatches('stage', 'group')" class="stage-filter-btn px-2 py-1 rounded-md text-[11px] font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition" data-stage="group">Group</button>
+              <button onclick="filterMatches('stage', 'quarters')" class="stage-filter-btn px-2 py-1 rounded-md text-[11px] font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition" data-stage="quarters">Quarters</button>
+              <button onclick="filterMatches('stage', 'final')" class="stage-filter-btn px-2 py-1 rounded-md text-[11px] font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition" data-stage="final">Final 🏆</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fixture Cards Stack -->
+        <div class="space-y-3" id="match-cards-container">
+          <!-- Dynamic Match Cards populated by JS -->
+        </div>
+
+      </section>
+
+      <!-- ==================== CENTER COLUMN: DIRECT STADIUM SIMULATION ENGINE (6 Cols) ==================== -->
+      <section class="md:col-span-7 lg:col-span-6 space-y-4">
+        
+        <div class="glass-panel rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-2xl relative">
+          
+          <!-- Stadium Engine Header Matrix -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80 mb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 id="active-stadium-title" class="font-display font-bold text-lg text-white">Moi International Sports Centre, Kasarani</h2>
+                <span id="active-match-stage-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">Grand Opening Match</span>
+              </div>
+              <p id="active-match-subtitle" class="text-xs text-slate-400 mt-0.5">KENYA Harambee Stars 🇰🇪 vs SENEGAL Lions of Teranga 🇸🇳</p>
+            </div>
+
+            <!-- Stand Quick Filter & Quick Selection Buttons -->
+            <div class="flex items-center gap-2">
+              <button onclick="selectBestAvailable()" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition flex items-center gap-1">
+                <span>⚡ Best Available</span>
+              </button>
+              <button onclick="clearAllSelectedSeats()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition">
+                Clear (0)
+              </button>
+            </div>
+          </div>
+
+          <!-- Color Key / Tier Legend Ribbon -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 p-2.5 rounded-xl bg-slate-900/90 border border-slate-800/80 text-xs">
+            <div class="flex items-center gap-2 p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30">
+              <span class="w-3 h-3 rounded-full bg-amber-500 shadow-md shadow-amber-500/50"></span>
+              <div>
+                <p class="font-bold text-[11px] text-amber-400 leading-none">VVIP Suite</p>
+                <p class="text-[10px] font-mono text-slate-300 mt-0.5" id="legend-price-vvip">KES 25,000</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/30">
+              <span class="w-3 h-3 rounded-full bg-blue-500 shadow-md shadow-blue-500/50"></span>
+              <div>
+                <p class="font-bold text-[11px] text-blue-400 leading-none">Category 1 (Main)</p>
+                <p class="text-[10px] font-mono text-slate-300 mt-0.5" id="legend-price-cat1">KES 5,000</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+              <span class="w-3 h-3 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/50"></span>
+              <div>
+                <p class="font-bold text-[11px] text-emerald-400 leading-none">Category 2 (Flanks)</p>
+                <p class="text-[10px] font-mono text-slate-300 mt-0.5" id="legend-price-cat2">KES 2,500</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 p-1.5 rounded-lg bg-orange-500/10 border border-orange-500/30">
+              <span class="w-3 h-3 rounded-full bg-orange-500 shadow-md shadow-orange-500/50"></span>
+              <div>
+                <p class="font-bold text-[11px] text-orange-400 leading-none">Category 3 (Goals)</p>
+                <p class="text-[10px] font-mono text-slate-300 mt-0.5" id="legend-price-cat3">KES 1,000</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stand Highlight Filter Bar (Direct Map Controls) -->
+          <div class="flex items-center justify-between gap-2 mb-3 bg-slate-900/60 p-1.5 rounded-xl border border-slate-800 text-[11px]">
+            <span class="text-slate-400 font-mono text-[10px] uppercase pl-1">Map View Filter:</span>
+            <div class="flex flex-wrap gap-1">
+              <button onclick="filterStadiumStand('all')" id="stand-btn-all" class="stand-filter-pill px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold transition">All 120 Sections</button>
+              <button onclick="filterStadiumStand('north')" id="stand-btn-north" class="stand-filter-pill px-2 py-1 rounded-lg text-slate-300 hover:text-white bg-slate-800/80 transition">North Stand (Cat 3)</button>
+              <button onclick="filterStadiumStand('south')" id="stand-btn-south" class="stand-filter-pill px-2 py-1 rounded-lg text-slate-300 hover:text-white bg-slate-800/80 transition">South Stand (Cat 3)</button>
+              <button onclick="filterStadiumStand('west')" id="stand-btn-west" class="stand-filter-pill px-2 py-1 rounded-lg text-slate-300 hover:text-white bg-slate-800/80 transition">West (VVIP/Cat 1)</button>
+              <button onclick="filterStadiumStand('east')" id="stand-btn-east" class="stand-filter-pill px-2 py-1 rounded-lg text-slate-300 hover:text-white bg-slate-800/80 transition">East (Cat 2)</button>
+            </div>
+          </div>
+
+          <!-- ==================== DIRECT AERIAL STADIUM SIMULATION CANVAS ==================== -->
+          <div class="stadium-bowl-wrapper relative rounded-2xl p-3 sm:p-4 overflow-hidden border border-slate-800 shadow-2xl select-none">
+            
+            <!-- Live Hover HUD Floating Bar -->
+            <div id="stadium-hover-hud" class="mb-2 p-2 rounded-xl bg-slate-900/90 border border-slate-800 text-xs flex items-center justify-between font-mono">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                <span class="text-slate-400">Hover Target:</span>
+                <span id="hud-section-name" class="text-white font-bold">North Stand • Section N-04</span>
+                <span id="hud-section-tier" class="px-1.5 py-0.2 rounded bg-orange-500/20 text-orange-400 text-[10px]">Category 3</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span id="hud-section-price" class="text-amber-400 font-bold">KES 1,000</span>
+                <span id="hud-section-status" class="text-emerald-400 font-medium">● Available</span>
+              </div>
+            </div>
+
+            <svg id="benchmark-stadium-map" class="benchmark-map" viewBox="0 0 1000 700" role="img" aria-label="Interactive stadium seat map">
+              <ellipse cx="500" cy="350" rx="450" ry="300" class="benchmark-bowl"></ellipse>
+              <ellipse cx="500" cy="350" rx="390" ry="255" class="benchmark-inner-bowl"></ellipse>
+              <g id="benchmark-seat-layer"></g>
+              <rect x="320" y="235" width="360" height="230" rx="30" class="benchmark-field"></rect>
+              <rect x="320" y="235" width="45" height="230" class="benchmark-field-stripe"></rect>
+              <rect x="410" y="235" width="45" height="230" class="benchmark-field-stripe"></rect>
+              <rect x="500" y="235" width="45" height="230" class="benchmark-field-stripe"></rect>
+              <rect x="590" y="235" width="45" height="230" class="benchmark-field-stripe"></rect>
+              <rect x="340" y="255" width="320" height="190" class="benchmark-field-line"></rect>
+              <line x1="500" y1="255" x2="500" y2="445" class="benchmark-field-line"></line>
+              <circle cx="500" cy="350" r="32" class="benchmark-field-line"></circle>
+              <circle cx="500" cy="350" r="3" fill="#fff"></circle>
+              <rect x="340" y="300" width="55" height="100" class="benchmark-field-line"></rect>
+              <rect x="605" y="300" width="55" height="100" class="benchmark-field-line"></rect>
+              <rect x="340" y="325" width="25" height="50" class="benchmark-field-line"></rect>
+              <rect x="635" y="325" width="25" height="50" class="benchmark-field-line"></rect>
+              <text x="500" y="500" class="benchmark-label" fill="#fff">AFCON PAMOJA 2027</text>
+            </svg>
+
+            <!-- Stadium Bowl Layout Grid:
+                 TOP: North Stand (Category 3 Goal End)
+                 MIDDLE: West Grandstand (VVIP/Cat1) + Center Tartan Track / Grass Pitch + East Grandstand (Cat 2)
+                 BOTTOM: South Stand (Category 3 Goal End)
+            -->
+            <div id="legacy-direct-layout" class="hidden space-y-3 max-w-2xl mx-auto py-1">
+              
+              <!-- ==================== 1. NORTH STAND (CATEGORY 3 GOAL END - 24 SECTIONS) ==================== -->
+              <div id="stand-container-north" class="stand-container p-2.5 rounded-2xl bg-orange-950/20 border border-orange-500/40 relative">
+                <div class="flex items-center justify-between mb-1.5 px-1">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+                    <span class="font-display font-bold text-xs text-orange-300">NORTH STAND (CATEGORY 3 - NORTH GOAL ULTRAS)</span>
+                    <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-orange-500/20 text-orange-300">24 Sections • Upper & Lower</span>
+                  </div>
+                  <span class="text-[11px] font-mono font-bold text-orange-400" id="header-price-cat3-n">KES 1,000 / seat</span>
+                </div>
+
+                <!-- 24 Interactive Section Bays in North Stand -->
+                <div class="grid grid-cols-8 sm:grid-cols-12 gap-1.5" id="grid-north-stand">
+                  <!-- JS Injects 24 sections with clickable seat dots -->
+                </div>
+              </div>
+
+              <!-- ==================== 2. MIDDLE ROW: WEST STAND (VVIP/CAT 1) + CENTER PITCH + EAST STAND (CAT 2) ==================== -->
+              <div class="grid grid-cols-12 gap-2 sm:gap-3 items-stretch">
+                
+                <!-- WEST STAND (LEFT): VVIP SUITES & CATEGORY 1 MAIN PRESIDENTIAL STAND (36 SECTIONS) -->
+                <div id="stand-container-west" class="stand-container col-span-3 sm:col-span-3 p-2 rounded-2xl bg-blue-950/20 border border-blue-500/40 flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center gap-1 mb-1">
+                      <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                      <span class="font-display font-bold text-[11px] text-amber-300 truncate">WEST VIP STAND</span>
+                    </div>
+                    <p class="text-[9px] text-slate-400 mb-1.5 font-mono">Presidential & Cat 1</p>
+                  </div>
+
+                  <!-- 36 Interactive Section Bays in West Stand -->
+                  <div class="grid grid-cols-3 sm:grid-cols-4 gap-1 overflow-y-auto max-h-[220px] pr-0.5" id="grid-west-stand">
+                    <!-- JS Injects 36 sections -->
+                  </div>
+
+                  <div class="mt-1 pt-1 border-t border-slate-800 text-[9px] font-mono text-amber-400 text-center">
+                    VVIP & Cat 1 Suites
+                  </div>
+                </div>
+
+                <!-- CENTER: REALISTIC TARTAN ATHLETIC RUNNING TRACK & FIFA GRASS PITCH -->
+                <div class="col-span-6 sm:col-span-6 rounded-2xl tartan-track p-2 border-2 border-slate-700 relative flex items-center justify-center min-h-[240px] shadow-2xl overflow-hidden">
+                  
+                  <!-- Grass Pitch Boundary -->
+                  <div class="w-full h-full rounded-xl pitch-grass border-2 border-white/60 relative flex items-center justify-center shadow-inner overflow-hidden">
+                    <!-- Pitch Markings -->
+                    <div class="absolute inset-1 border border-white/40 rounded pointer-events-none"></div>
+                    <!-- Halfway Line -->
+                    <div class="absolute inset-x-0 top-1/2 h-0.5 bg-white/40 transform -translate-y-1/2 pointer-events-none"></div>
+                    <!-- Center Circle -->
+                    <div class="w-16 h-16 rounded-full border border-white/50 flex items-center justify-center pointer-events-none">
+                      <div class="w-2 h-2 rounded-full bg-white/80"></div>
+                    </div>
+                    <!-- Top Goal Penalty Box (North Goal) -->
+                    <div class="absolute top-1 inset-x-1/4 h-10 border border-white/40 border-t-0 pointer-events-none flex items-start justify-center">
+                      <span class="text-[8px] font-mono text-white/50 uppercase mt-0.5">North Goal 🥅</span>
+                    </div>
+                    <!-- Bottom Goal Penalty Box (South Goal) -->
+                    <div class="absolute bottom-1 inset-x-1/4 h-10 border border-white/40 border-b-0 pointer-events-none flex items-end justify-center">
+                      <span class="text-[8px] font-mono text-white/50 uppercase mb-0.5">South Goal 🥅</span>
+                    </div>
+                    
+                    <!-- Center Pitch Watermark & Live Selection Counter -->
+                    <div class="text-center pointer-events-none z-10 space-y-0.5">
+                      <span class="font-display font-black text-xl tracking-widest text-white/80 uppercase block">CAF CHAN</span>
+                      <span id="center-pitch-counter" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-950/80 text-emerald-400 border border-emerald-500/40">
+                        0 Seats Selected
+                      </span>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- EAST STAND (RIGHT): CATEGORY 2 & CATEGORY 1 FLANK GRANDSTAND (36 SECTIONS) -->
+                <div id="stand-container-east" class="stand-container col-span-3 sm:col-span-3 p-2 rounded-2xl bg-emerald-950/20 border border-emerald-500/40 flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center gap-1 mb-1">
+                      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                      <span class="font-display font-bold text-[11px] text-emerald-300 truncate">EAST FLANK STAND</span>
+                    </div>
+                    <p class="text-[9px] text-slate-400 mb-1.5 font-mono">Panoramic Cat 2</p>
+                  </div>
+
+                  <!-- 36 Interactive Section Bays in East Stand -->
+                  <div class="grid grid-cols-3 sm:grid-cols-4 gap-1 overflow-y-auto max-h-[220px] pr-0.5" id="grid-east-stand">
+                    <!-- JS Injects 36 sections -->
+                  </div>
+
+                  <div class="mt-1 pt-1 border-t border-slate-800 text-[9px] font-mono text-emerald-400 text-center">
+                    Cat 2 Upper Deck
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- ==================== 3. SOUTH STAND (CATEGORY 3 GOAL END - 24 SECTIONS) ==================== -->
+              <div id="stand-container-south" class="stand-container p-2.5 rounded-2xl bg-orange-950/20 border border-orange-500/40 relative">
+                <div class="flex items-center justify-between mb-1.5 px-1">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+                    <span class="font-display font-bold text-xs text-orange-300">SOUTH STAND (CATEGORY 3 - SOUTH GOAL FAMILY ZONE)</span>
+                    <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-orange-500/20 text-orange-300">24 Sections • Upper & Lower</span>
+                  </div>
+                  <span class="text-[11px] font-mono font-bold text-orange-400" id="header-price-cat3-s">KES 1,000 / seat</span>
+                </div>
+
+                <!-- 24 Interactive Section Bays in South Stand -->
+                <div class="grid grid-cols-8 sm:grid-cols-12 gap-1.5" id="grid-south-stand">
+                  <!-- JS Injects 24 sections with clickable seat dots -->
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Direct Stadium Help Prompt Ribbon -->
+            <div class="mt-2 text-center text-[11px] text-slate-400 font-mono flex items-center justify-center gap-2">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> VVIP</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Cat 1</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Cat 2</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Cat 3</span>
+              <span class="text-slate-600">|</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span> Selected</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-700"></span> Occupied (Dimmed)</span>
+            </div>
+
+            <div id="map-section-inspector" class="mt-3 grid gap-3 rounded-xl border border-slate-700 bg-slate-950/80 p-3 sm:grid-cols-[1fr_auto] sm:items-center" aria-live="polite">
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500">Section inspector</span>
+                  <span id="inspector-status" class="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-mono text-emerald-300">Choose a seat</span>
+                </div>
+                <h3 id="inspector-section" class="mt-1 font-display text-base font-bold text-white">Select a seat on the stadium map</h3>
+                <p id="inspector-copy" class="mt-1 text-xs text-slate-400">The map mirrors the stadium bowl. Pick a colored dot in the stand where you want to sit.</p>
+              </div>
+              <div class="grid grid-cols-3 gap-3 text-right text-xs sm:min-w-[220px]">
+                <div><span class="block text-[9px] uppercase text-slate-500">Category</span><strong id="inspector-tier" class="text-slate-200">—</strong></div>
+                <div><span class="block text-[9px] uppercase text-slate-500">Available</span><strong id="inspector-availability" class="text-emerald-300">—</strong></div>
+                <div><span class="block text-[9px] uppercase text-slate-500">Price</span><strong id="inspector-price" class="text-amber-300">—</strong></div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ==================== RIGHT COLUMN: DYNAMIC BILLING & CHECKOUT STACK (3 Cols) ==================== -->
+      <section id="billing-stack-sidebar" class="md:col-span-12 lg:col-span-3 space-y-4">
+        
+        <div class="glass-panel rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-2xl space-y-4 sticky top-20">
+          
+          <!-- Inventory Countdown Hold Timer -->
+          <div class="p-3 rounded-xl bg-gradient-to-r from-amber-950/60 to-slate-900 border border-amber-500/30 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                <svg class="w-4 h-4 animate-spin" style="animation-duration: 8s;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-[10px] uppercase font-bold text-amber-400 tracking-wider">Seat Hold Clock</p>
+                <p class="text-[10px] text-slate-400">Official CAF Inventory Lock</p>
+              </div>
+            </div>
+
+            <div class="text-right">
+              <span id="countdown-timer" class="font-mono font-black text-lg text-amber-400 tracking-wider">09:59</span>
+              <p class="text-[9px] text-slate-500">Auto-release</p>
+            </div>
+          </div>
+
+          <!-- Itemized Selected Tickets Ledger -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                Summary Invoice
+              </h3>
+              <span id="cart-item-count" class="text-[11px] font-mono text-emerald-400">0 Seats Selected</span>
+            </div>
+
+            <!-- Seat Items List -->
+            <div id="cart-items-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+              <div class="p-3 rounded-xl bg-slate-900/60 border border-dashed border-slate-800 text-center text-xs text-slate-500 py-6">
+                No seats selected yet.<br>Click colored seat dots directly on the stadium map to reserve!
+              </div>
+            </div>
+          </div>
+
+          <!-- Financial Breakdown Ledger -->
+          <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5 text-xs">
+            <div class="flex justify-between text-slate-400">
+              <span>Seats Subtotal</span>
+              <span id="ledger-subtotal" class="font-mono text-slate-200">KES 0</span>
+            </div>
+            <div class="flex justify-between text-slate-400">
+              <span>Statutory Sports Levy & VAT (16%)</span>
+              <span id="ledger-vat" class="font-mono text-slate-200">KES 0</span>
+            </div>
+            <div class="flex justify-between text-slate-400">
+              <span>YALLA Anti-Scalping Pass Fee</span>
+              <span class="font-mono text-emerald-400">KES 0 (Waived)</span>
+            </div>
+            <div class="border-t border-slate-800 pt-2 mt-1 flex justify-between items-baseline">
+              <span class="font-bold text-sm text-white">Grand Total Amount</span>
+              <span id="ledger-total" class="font-mono font-black text-lg text-amber-400">KES 0</span>
+            </div>
+          </div>
+
+          <!-- Payment Processor Selection Tabs -->
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-slate-400 mb-2 tracking-wider">Direct Checkout Gateway</label>
+            
+            <div class="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 text-xs mb-3">
+              <button id="pay-tab-mpesa" onclick="setPaymentMethod('mpesa')" class="py-2 px-2 rounded-lg font-semibold bg-emerald-600 text-white shadow flex items-center justify-center gap-1.5 transition">
+                <span class="w-2 h-2 rounded-full bg-white"></span>
+                <span>M-Pesa STK</span>
+              </button>
+              <button id="pay-tab-card" onclick="setPaymentMethod('card')" class="py-2 px-2 rounded-lg font-medium text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5 transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                <span>Credit Card</span>
+              </button>
+            </div>
+
+            <!-- M-Pesa STK Push Form -->
+            <div id="payment-mpesa-view" class="space-y-2.5">
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">M-Pesa Registered Safaricom Number</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-mono text-emerald-400 font-bold">+254</span>
+                  <input type="tel" id="mpesa-phone-input" value="712849320" class="w-full glass-input text-xs font-mono text-white rounded-lg pl-12 pr-3 py-2 outline-none focus:border-emerald-500">
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1">Instant SIM Toolkit PIN prompt dispatched on your handset.</p>
+              </div>
+            </div>
+
+            <!-- International Card Processor Form -->
+            <div id="payment-card-view" class="hidden space-y-2.5">
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Card Number</label>
+                <input type="text" placeholder="4242 •••• •••• 4242" class="w-full glass-input text-xs font-mono text-white rounded-lg px-3 py-2 outline-none">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] text-slate-400 mb-1">Expires (MM/YY)</label>
+                  <input type="text" placeholder="12/28" class="w-full glass-input text-xs font-mono text-white rounded-lg px-3 py-2 outline-none">
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-400 mb-1">Security CVV</label>
+                  <input type="password" placeholder="•••" maxlength="4" class="w-full glass-input text-xs font-mono text-white rounded-lg px-3 py-2 outline-none">
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Checkout CTA Trigger Button -->
+          <button id="btn-main-checkout" onclick="executeCheckoutPayment()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-display font-black text-sm uppercase tracking-wider transition-all duration-200 shadow-xl shadow-emerald-500/20 active:scale-98 flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+            <span id="checkout-btn-text">Authorize & Pay KES 0</span>
+          </button>
+
+          <p class="text-[10px] text-center text-slate-500 flex items-center justify-center gap-1">
+            <svg class="w-3 h-3 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+            Encrypted with 256-bit SHA SSL & Supabase Row Level Security
+          </p>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- ==================== PART 2: SUPABASE INTEGRATED SUPER-ADMIN SUITE ==================== -->
+  <main id="view-admin-suite" class="hidden flex-1 max-w-[1720px] w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6 transition-all duration-300">
+    
+    <!-- Super Admin Header with KPI Stats -->
+    <div class="glass-panel rounded-2xl p-6 border border-slate-800 shadow-2xl relative overflow-hidden">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-mono font-bold flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              SUPABASE PGSQL v16.4 ACTIVE
+            </span>
+            <h1 class="font-display font-black text-2xl text-white">CAF Central Command & Pricing Controller</h1>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Super-Admin Ledger, Live 120-Section Inventory Stream & Security Clearance</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="simulateNewSupabaseRecord()" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-mono text-amber-400 flex items-center gap-2 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            + Simulate Ingest Webhook
+          </button>
+          <button onclick="switchMainView('fan')" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-amber-500/20 transition">
+            Return to Stadium Map →
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5">
+        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+          <p class="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Gross Matchday Revenue</p>
+          <p id="kpi-gross-revenue" class="font-display font-black text-xl text-amber-400 mt-1">KES 14,850,000</p>
+          <span class="text-[10px] text-emerald-400 font-mono">↑ +24.8% vs CHAN 2024</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+          <p class="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Total Seats Dispatched</p>
+          <p id="kpi-seats-dispatched" class="font-display font-black text-xl text-white mt-1">51,240 / 60,000</p>
+          <span class="text-[10px] text-blue-400 font-mono" id="kpi-cap-pct">85.4% Kasarani Capacity</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+          <p class="text-[10px] font-mono text-slate-400 uppercase tracking-wider">YALLA Passes Verified</p>
+          <p id="kpi-passes-verified" class="font-display font-black text-xl text-emerald-400 mt-1">51,240 (100%)</p>
+          <span class="text-[10px] text-emerald-300 font-mono">0 Fraud Flags Detected</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+          <p class="text-[10px] font-mono text-slate-400 uppercase tracking-wider">M-Pesa STK Settlement Rate</p>
+          <p class="font-display font-black text-xl text-emerald-400 mt-1">98.4%</p>
+          <span class="text-[10px] text-slate-400 font-mono">Avg Speed: 4.2 seconds</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dynamic Global Price Controller Panel -->
+    <div class="glass-panel rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <h2 class="font-display font-bold text-lg text-white">Dynamic Pricing Tier Controller</h2>
+            <p class="text-xs text-slate-400">Modify global ticket tier prices across Kasarani, Nyayo & Eldoret arenas.</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="applyPresetMultiplier(1.15)" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs text-amber-300 font-mono">+15% Peak Surge</button>
+          <button onclick="resetBasePrices()" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs text-slate-400 font-mono">Reset Base</button>
+        </div>
+      </div>
+
+      <!-- Pricing Inputs Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-amber-500/40 space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-bold text-amber-400 uppercase">VVIP Suite Tier</label>
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+          </div>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-mono text-slate-400">KES</span>
+            <input type="number" id="admin-price-vvip" value="25000" step="500" class="w-full glass-input text-sm font-mono font-bold text-white pl-12 pr-3 py-2 rounded-lg outline-none">
+          </div>
+          <p class="text-[10px] text-slate-500">Includes Hospitality Buffet & Gold Lounge Pass</p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-blue-500/40 space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-bold text-blue-400 uppercase">Category 1 (Main Stand)</label>
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+          </div>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-mono text-slate-400">KES</span>
+            <input type="number" id="admin-price-cat1" value="5000" step="250" class="w-full glass-input text-sm font-mono font-bold text-white pl-12 pr-3 py-2 rounded-lg outline-none">
+          </div>
+          <p class="text-[10px] text-slate-500">Central Midfield Covered Prime View</p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-emerald-500/40 space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-bold text-emerald-400 uppercase">Category 2 (Flanks)</label>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          </div>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-mono text-slate-400">KES</span>
+            <input type="number" id="admin-price-cat2" value="2500" step="100" class="w-full glass-input text-sm font-mono font-bold text-white pl-12 pr-3 py-2 rounded-lg outline-none">
+          </div>
+          <p class="text-[10px] text-slate-500">East Upper Deck Flank Views</p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-orange-500/40 space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-xs font-bold text-orange-400 uppercase">Category 3 (Goals)</label>
+            <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+          </div>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-mono text-slate-400">KES</span>
+            <input type="number" id="admin-price-cat3" value="1000" step="50" class="w-full glass-input text-sm font-mono font-bold text-white pl-12 pr-3 py-2 rounded-lg outline-none">
+          </div>
+          <p class="text-[10px] text-slate-500">North & South Goal Stands / Ultras Section</p>
+        </div>
+      </div>
+
+      <!-- Apply Global Prices Action Button -->
+      <div class="flex justify-end pt-2">
+        <button onclick="commitAdminPriceMatrix()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-display font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Apply Prices to Match Day Matrix
+        </button>
+      </div>
+    </div>
+
+    <!-- Supabase Simulated Data Explorer Table -->
+    <div class="glass-panel rounded-2xl p-6 border border-slate-800 shadow-2xl space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+        <div>
+          <h2 class="font-display font-bold text-lg text-white flex items-center gap-2">
+            <span>Supabase Simulated Data Explorer</span>
+            <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">public.match_tickets_v1</span>
+          </h2>
+          <p class="text-xs text-slate-400">Live PostgreSQL Table with Realtime Subscriptions & Security Audit Logs</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <input type="text" id="admin-table-search" oninput="filterAdminTable()" placeholder="Search Fan, Passport, UUID..." class="glass-input text-xs text-slate-200 px-3 py-1.5 rounded-lg outline-none w-56 font-mono">
+          <select id="admin-status-filter" onchange="filterAdminTable()" class="glass-input text-xs text-slate-300 px-3 py-1.5 rounded-lg outline-none font-mono">
+            <option value="all">All Payment Statuses</option>
+            <option value="Paid via M-Pesa">Paid via M-Pesa</option>
+            <option value="Paid via Card">Paid via Card</option>
+            <option value="Pending">Pending</option>
+            <option value="Revoked">Revoked</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Responsive Data Grid Table -->
+      <div class="overflow-x-auto rounded-xl border border-slate-800">
+        <table class="w-full text-left text-xs text-slate-300">
+          <thead class="bg-slate-900/90 text-[10px] font-mono text-slate-400 uppercase tracking-wider border-b border-slate-800">
+            <tr>
+              <th class="p-3">User UUID</th>
+              <th class="p-3">YALLA Fan ID</th>
+              <th class="p-3">Legal Passport Name</th>
+              <th class="p-3">Registered Email</th>
+              <th class="p-3">Phone Number</th>
+              <th class="p-3">Seat Coordinate</th>
+              <th class="p-3">Payment Status</th>
+              <th class="p-3 text-right">Admin Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-data-grid-body" class="divide-y divide-slate-800/60 font-mono text-[11px]">
+            <!-- JS dynamically populates rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==================== TRANSACTION / CONFIRMATION MODAL & E-TICKET ==================== -->
+  <div id="modal-ticket-receipt" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="max-w-md w-full glass-panel rounded-3xl p-6 border border-emerald-500/40 shadow-2xl space-y-4 animate-glow-emerald relative">
+      
+      <button onclick="closeReceiptModal()" class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-800 text-slate-400 hover:text-white">
+        ✕
+      </button>
+
+      <div class="text-center space-y-1">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto mb-2 text-2xl font-black">
+          ✓
+        </div>
+        <span class="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">Official CAF CHAN e-Ticket Issued</span>
+        <h3 class="font-display font-black text-xl text-white">Payment Authorized & Confirmed</h3>
+        <p class="text-xs text-slate-400">Dispatched to <span id="modal-fan-email" class="text-slate-200 font-mono">kipchumba.kiprop@eastafricafan.co.ke</span></p>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+          <div>
+            <span class="text-[9px] font-mono text-amber-400 uppercase">Tournament Match</span>
+            <p id="modal-ticket-match" class="font-bold text-xs text-white">Kenya 🇰🇪 vs Senegal 🇸🇳</p>
+          </div>
+          <div class="text-right">
+            <span class="text-[9px] font-mono text-slate-400 uppercase">Venue</span>
+            <p id="modal-ticket-venue" class="font-bold text-xs text-slate-200">Kasarani Arena (60k)</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <span class="text-[9px] text-slate-500">FAN PASS ID</span>
+            <p id="modal-ticket-fan-id" class="font-mono text-emerald-400 font-bold">YALLA-KE-2026-98124A</p>
+          </div>
+          <div>
+            <span class="text-[9px] text-slate-500">HOLDER NAME</span>
+            <p id="modal-ticket-fan-name" class="font-medium text-slate-200">Kipchumba J. Kiprop</p>
+          </div>
+        </div>
+
+        <div class="p-2 rounded-xl bg-slate-950 border border-slate-800/80">
+          <span class="text-[9px] text-slate-400">ASSIGNED STADIUM SEATS</span>
+          <div id="modal-ticket-seats" class="flex flex-wrap gap-1.5 mt-1">
+            <!-- Dynamic seat tags -->
+          </div>
+        </div>
+
+        <!-- Barcode & QR Code Visual Matrix -->
+        <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+          <div class="space-y-1">
+            <div class="flex gap-0.5 h-7">
+              <div class="w-1 bg-white"></div><div class="w-2 bg-white"></div><div class="w-0.5 bg-white"></div>
+              <div class="w-1.5 bg-white"></div><div class="w-0.5 bg-white"></div><div class="w-2 bg-white"></div>
+              <div class="w-1 bg-white"></div><div class="w-0.5 bg-white"></div><div class="w-1.5 bg-white"></div>
+              <div class="w-2 bg-white"></div><div class="w-0.5 bg-white"></div><div class="w-1 bg-white"></div>
+            </div>
+            <p class="text-[8px] font-mono text-slate-500">TXN-ID: CAF-2026-MPESA-89472190</p>
+          </div>
+          <div class="w-12 h-12 bg-white rounded-lg p-1 flex items-center justify-center">
+            <div class="w-10 h-10 border-2 border-slate-950 grid grid-cols-3 gap-0.5 p-0.5">
+              <div class="bg-slate-950"></div><div class="bg-slate-950"></div><div class="bg-transparent"></div>
+              <div class="bg-transparent"></div><div class="bg-slate-950"></div><div class="bg-slate-950"></div>
+              <div class="bg-slate-950"></div><div class="bg-transparent"></div><div class="bg-slate-950"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="window.print()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700">
+          Print / Download Pass
+        </button>
+        <button onclick="closeReceiptModal()" class="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold">
+          Done & Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification Alert Box -->
+  <div id="toast-notification" class="fixed bottom-5 right-5 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="p-3.5 rounded-2xl glass-panel border border-amber-500/40 shadow-2xl flex items-center gap-3 text-xs text-white max-w-sm">
+      <span id="toast-icon" class="text-base">🔔</span>
+      <div id="toast-message" class="font-medium">Notification message here</div>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT DIRECT STADIUM SIMULATION ENGINE ==================== -->
+  <script>
+    /* ==========================================================================
+       GLOBAL APP STATE & 120-SECTION STADIUM INVENTORY
+       ========================================================================== */
+    const AppState = {
+      activeView: 'fan',
+      authMode: 'email',
+      isYallaVerified: false,
+      fanProfile: {
+        id: 'YALLA-KE-2026-98124A',
+        name: 'Kipchumba J. Kiprop',
+        nationality: 'Kenyan 🇰🇪',
+        passport: 'A09823419',
+        email: 'kipchumba.kiprop@eastafricafan.co.ke',
+        phone: '+254 712 849 320'
+      },
+      currentMatchId: 'm1',
+      activeStandFilter: 'all', // 'all' | 'north' | 'south' | 'west' | 'east'
+      selectedSeats: [], // Array of seat objects { id, sectionId, sectionName, row, seatNum, tierKey, price }
+      pricingTiers: {
+        vvip: 25000,
+        cat1: 5000,
+        cat2: 2500,
+        cat3: 1000
+      },
+      paymentMethod: 'mpesa',
+      countdownSeconds: 599,
+      countdownInterval: null,
+      
+      // Match Fixture Database with Specific Capacities
+      matches: [
+        {
+          id: 'm1',
+          home: 'Kenya 🇰🇪',
+          away: 'Senegal 🇸🇳',
+          stage: 'Grand Opening Match',
+          stageKey: 'group',
+          venue: 'Moi Int. Sports Centre, Kasarani',
+          venueKey: 'kasarani',
+          capacity: 60000,
+          occupiedSeats: 51240,
+          date: 'Fri, 18 Sep 2026',
+          time: '20:00 EAT',
+          stockStatus: '● High Demand - 85% Sold',
+          stockColor: 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+        },
+        {
+          id: 'm2',
+          home: 'Nigeria 🇳🇬',
+          away: 'Ivory Coast 🇨🇮',
+          stage: 'Quarter-Final 1',
+          stageKey: 'quarters',
+          venue: 'Nyayo National Stadium',
+          venueKey: 'nyayo',
+          capacity: 30000,
+          occupiedSeats: 26800,
+          date: 'Sun, 20 Sep 2026',
+          time: '17:00 EAT',
+          stockStatus: '● VIP Only Remaining',
+          stockColor: 'text-orange-400 bg-orange-500/10 border-orange-500/30'
+        },
+        {
+          id: 'm3',
+          home: 'Morocco 🇲🇦',
+          away: 'Egypt 🇪🇬',
+          stage: 'Tournament Grand Final 🏆',
+          stageKey: 'final',
+          venue: 'Kipchoge Keino Stadium, Eldoret',
+          venueKey: 'eldoret',
+          capacity: 15000,
+          occupiedSeats: 13800,
+          date: 'Sat, 26 Sep 2026',
+          time: '21:00 EAT',
+          stockStatus: '● Selling Fast (92%)',
+          stockColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+        }
+      ],
+
+      // 120 Visual Interactive Sections Database across 4 Stands
+      sections: [],
+
+      // Supabase PostgreSQL Simulated Backend Rows
+      supabaseRows: [
+        {
+          uuid: 'usr_9a8f-2301-bc84',
+          yallaId: 'YALLA-KE-2026-98124A',
+          passportName: 'Kipchumba J. Kiprop',
+          email: 'kipchumba.kiprop@eastafricafan.co.ke',
+          phone: '+254 712 849 320',
+          seatCoord: 'WEST W-04 / Row B / #08',
+          status: 'Paid via M-Pesa',
+          statusColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+        },
+        {
+          uuid: 'usr_7b12-4491-fd92',
+          yallaId: 'YALLA-SN-2026-11840C',
+          passportName: 'Sadio M. Diallo',
+          email: 'diallo.sadio@dakarfoot.sn',
+          phone: '+221 77 892 4110',
+          seatCoord: 'WEST VIP-02 / Row A / #04',
+          status: 'Paid via Card',
+          statusColor: 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+        },
+        {
+          uuid: 'usr_4c98-1004-aa55',
+          yallaId: 'YALLA-TZ-2026-78320K',
+          passportName: 'Amani Bakari',
+          email: 'bakari.amani@darfan.co.tz',
+          phone: '+255 754 119 823',
+          seatCoord: 'EAST E-12 / Row D / #06',
+          status: 'Pending',
+          statusColor: 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+        },
+        {
+          uuid: 'usr_3d44-9082-ee19',
+          yallaId: 'YALLA-UG-2026-66219X',
+          passportName: 'Denis Kato',
+          email: 'kato.denis@kampalafans.ug',
+          phone: '+256 772 884 102',
+          seatCoord: 'NORTH N-08 / Row A / #02',
+          status: 'Paid via M-Pesa',
+          statusColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+        }
+      ]
+    };
+
+    /* ==========================================================================
+       GENERATE 120 INTERACTIVE STADIUM SECTION BAYS WITH DIRECT SEAT DOTS
+       ========================================================================== */
+    function initialize120StadiumSections() {
+      const sections = [];
+
+      // 1. NORTH STAND (Category 3 Goal End): 24 Sections (N-01 to N-24)
+      for (let i = 1; i <= 24; i++) {
+        const id = `N-${i < 10 ? '0' + i : i}`;
+        const isFullyOccupied = (i === 3 || i === 11 || i === 19 || i === 22);
+        sections.push({
+          id: id,
+          code: id,
+          stand: 'north',
+          standName: 'North Stand (Goal End)',
+          tierKey: 'cat3',
+          tierName: 'Category 3',
+          tierColor: 'bg-orange-500',
+          tierBorder: 'border-orange-500/40',
+          tierText: 'text-orange-400',
+          isOccupied: isFullyOccupied,
+          rows: ['A', 'B'],
+          seatsPerRow: 4
+        });
+      }
+
+      // 2. SOUTH STAND (Category 3 Goal End): 24 Sections (S-01 to S-24)
+      for (let i = 1; i <= 24; i++) {
+        const id = `S-${i < 10 ? '0' + i : i}`;
+        const isFullyOccupied = (i === 6 || i === 14 || i === 20);
+        sections.push({
+          id: id,
+          code: id,
+          stand: 'south',
+          standName: 'South Stand (Goal End)',
+          tierKey: 'cat3',
+          tierName: 'Category 3',
+          tierColor: 'bg-orange-500',
+          tierBorder: 'border-orange-500/40',
+          tierText: 'text-orange-400',
+          isOccupied: isFullyOccupied,
+          rows: ['A', 'B'],
+          seatsPerRow: 4
+        });
+      }
+
+      // 3. WEST STAND (Presidential Stand): 36 Sections (W-01 to W-36)
+      for (let i = 1; i <= 36; i++) {
+        const isVVIP = i <= 12;
+        const id = isVVIP ? `VIP-${i < 10 ? '0' + i : i}` : `W-${i < 10 ? '0' + i : i}`;
+        const isFullyOccupied = (i === 2 || i === 7 || i === 18 || i === 29);
+        sections.push({
+          id: id,
+          code: id,
+          stand: 'west',
+          standName: isVVIP ? 'West Stand (VVIP Suite)' : 'West Stand (Cat 1 Main)',
+          tierKey: isVVIP ? 'vvip' : 'cat1',
+          tierName: isVVIP ? 'VVIP Suite' : 'Category 1',
+          tierColor: isVVIP ? 'bg-amber-500' : 'bg-blue-500',
+          tierBorder: isVVIP ? 'border-amber-500/50' : 'border-blue-500/40',
+          tierText: isVVIP ? 'text-amber-400' : 'text-blue-400',
+          isOccupied: isFullyOccupied,
+          rows: ['A', 'B'],
+          seatsPerRow: 4
+        });
+      }
+
+      // 4. EAST STAND (Flank Grandstand): 36 Sections (E-01 to E-36)
+      for (let i = 1; i <= 36; i++) {
+        const isCat1 = i % 6 === 0;
+        const id = `E-${i < 10 ? '0' + i : i}`;
+        const isFullyOccupied = (i === 4 || i === 15 || i === 27 || i === 33);
+        sections.push({
+          id: id,
+          code: id,
+          stand: 'east',
+          standName: isCat1 ? 'East Stand (Cat 1 Covered)' : 'East Stand (Cat 2 Flank)',
+          tierKey: isCat1 ? 'cat1' : 'cat2',
+          tierName: isCat1 ? 'Category 1' : 'Category 2',
+          tierColor: isCat1 ? 'bg-blue-500' : 'bg-emerald-500',
+          tierBorder: isCat1 ? 'border-blue-500/40' : 'border-emerald-500/40',
+          tierText: isCat1 ? 'text-blue-400' : 'text-emerald-400',
+          isOccupied: isFullyOccupied,
+          rows: ['A', 'B'],
+          seatsPerRow: 4
+        });
+      }
+
+      AppState.sections = sections;
+    }
+
+    /* ==========================================================================
+       RENDER DIRECT AERIAL STADIUM MAP (120 VISUAL SECTIONS & SEAT DOTS)
+       ========================================================================== */
+    function renderBenchmarkStadiumMap() {
+      const layer = document.getElementById('benchmark-seat-layer');
+      if (!layer) return;
+
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const colors = { vvip: '#f59e0b', cat1: '#3b82f6', cat2: '#10b981', cat3: '#f97316' };
+      const visibleSections = AppState.sections.filter(sec => AppState.activeStandFilter === 'all' || sec.stand === AppState.activeStandFilter);
+      layer.innerHTML = '';
+
+      visibleSections.forEach((sec, sectionIndex) => {
+        const standSections = AppState.sections.filter(item => item.stand === sec.stand);
+        const standIndex = standSections.findIndex(item => item.id === sec.id);
+        const angleRanges = { north: [205, 335], south: [25, 155], west: [115, 245], east: [-65, 65] };
+        const [startAngle, endAngle] = angleRanges[sec.stand];
+        const sectionAngle = startAngle + (standIndex / Math.max(standSections.length - 1, 1)) * (endAngle - startAngle);
+        const group = document.createElementNS(svgNS, 'g');
+        const sectionSeatCount = sec.rows.length * sec.seatsPerRow;
+        const selectedCount = AppState.selectedSeats.filter(seat => seat.sectionId === sec.id).length;
+
+        sec.rows.forEach((row, rowIndex) => {
+          for (let seatIndex = 1; seatIndex <= sec.seatsPerRow; seatIndex++) {
+            const seatNumber = `0${seatIndex}`;
+            const seatId = `${sec.id}_${row}_${seatNumber}`;
+            const isSelected = AppState.selectedSeats.some(seat => seat.id === seatId);
+            const isSold = sec.isOccupied || ((seatIndex + rowIndex + sectionIndex) % 17 === 0);
+            const seatAngle = sectionAngle - 4 + ((seatIndex - 1) / Math.max(sec.seatsPerRow - 1, 1)) * 8;
+            const radians = seatAngle * Math.PI / 180;
+            const circle = document.createElementNS(svgNS, 'circle');
+            circle.setAttribute('cx', 500 + Math.cos(radians) * (300 + rowIndex * 18));
+            circle.setAttribute('cy', 350 + Math.sin(radians) * (185 + rowIndex * 14));
+            circle.setAttribute('r', '4');
+            circle.setAttribute('class', `benchmark-seat ${isSold ? 'benchmark-seat-sold' : isSelected ? 'benchmark-seat-selected' : ''}`);
+            circle.setAttribute('fill', isSold ? '#334155' : isSelected ? '#f59e0b' : colors[sec.tierKey]);
+            circle.setAttribute('aria-label', `${sec.code}, row ${row}, seat ${seatNumber}`);
+            circle.addEventListener('mouseenter', () => updateHudSection(sec.code, sec.standName, sec.tierName, AppState.pricingTiers[sec.tierKey], isSold, `${Math.max(0, sectionSeatCount - selectedCount)} seats in section`));
+            if (!isSold) circle.addEventListener('click', event => toggleDirectSeatClick(seatId, sec.id, sec.standName, row, seatNumber, sec.tierKey, AppState.pricingTiers[sec.tierKey], event));
+            group.appendChild(circle);
+          }
+        });
+
+        const labelRadians = sectionAngle * Math.PI / 180;
+        const label = document.createElementNS(svgNS, 'text');
+        label.setAttribute('x', 500 + Math.cos(labelRadians) * 390);
+        label.setAttribute('y', 350 + Math.sin(labelRadians) * 245);
+        label.setAttribute('class', 'benchmark-label');
+        label.textContent = sec.code;
+        group.appendChild(label);
+        layer.appendChild(group);
+      });
+    }
+
+    function renderDirectStadiumMap() {
+      renderBenchmarkStadiumMap();
+      const northGrid = document.getElementById('grid-north-stand');
+      const southGrid = document.getElementById('grid-south-stand');
+      const westGrid = document.getElementById('grid-west-stand');
+      const eastGrid = document.getElementById('grid-east-stand');
+
+      const northSecs = AppState.sections.filter(s => s.stand === 'north');
+      const southSecs = AppState.sections.filter(s => s.stand === 'south');
+      const westSecs = AppState.sections.filter(s => s.stand === 'west');
+      const eastSecs = AppState.sections.filter(s => s.stand === 'east');
+
+      northGrid.innerHTML = northSecs.map(renderSectionBayHtml).join('');
+      southGrid.innerHTML = southSecs.map(renderSectionBayHtml).join('');
+      westGrid.innerHTML = westSecs.map(renderSectionBayHtml).join('');
+      eastGrid.innerHTML = eastSecs.map(renderSectionBayHtml).join('');
+
+      updatePriceLabels();
+    }
+
+    function renderSectionBayHtml(sec) {
+      const tierPrice = AppState.pricingTiers[sec.tierKey];
+      const isOccupied = sec.isOccupied;
+      const sectionSeatCount = sec.rows.length * sec.seatsPerRow;
+      const selectedCount = AppState.selectedSeats.filter(seat => seat.sectionId === sec.id).length;
+
+      let seatDotsHtml = '';
+      for (const row of sec.rows) {
+        for (let seat = 1; seat <= sec.seatsPerRow; seat++) {
+          const seatNum = `0${seat}`;
+          const seatId = `${sec.id}_${row}_${seatNum}`;
+          const isSelected = AppState.selectedSeats.some(s => s.id === seatId);
+
+          if (isOccupied) {
+            seatDotsHtml += `
+              <div class="map-seat-node seat-node-occupied w-2.5 h-2.5 rounded-full" title="${sec.code} Row ${row}-${seatNum} • Occupied"></div>
+            `;
+          } else if (isSelected) {
+            seatDotsHtml += `
+              <div onclick="toggleDirectSeatClick('${seatId}', '${sec.id}', '${sec.standName}', '${row}', '${seatNum}', '${sec.tierKey}', ${tierPrice}, event)" 
+                   class="map-seat-node seat-node-selected cursor-pointer w-2.5 h-2.5 rounded-full" 
+                   title="${sec.code} Row ${row}-${seatNum} • SELECTED (Click to deselect)"></div>
+            `;
+          } else {
+            seatDotsHtml += `
+              <div onclick="toggleDirectSeatClick('${seatId}', '${sec.id}', '${sec.standName}', '${row}', '${seatNum}', '${sec.tierKey}', ${tierPrice}, event)" 
+                   class="map-seat-node cursor-pointer w-2.5 h-2.5 rounded-full ${sec.tierColor} border border-slate-900/50" 
+                   title="${sec.code} Row ${row}-${seatNum} • KES ${tierPrice.toLocaleString()}"></div>
+            `;
+          }
+        }
+      }
+
+      return `
+           <div onmouseenter="updateHudSection('${sec.code}', '${sec.standName}', '${sec.tierName}', ${tierPrice}, ${isOccupied}, ${sectionSeatCount - selectedCount})"
+             onclick="updateInspectorSection('${sec.code}', '${sec.standName}', '${sec.tierName}', ${tierPrice}, ${isOccupied}, ${sectionSeatCount - selectedCount})"
+             class="stadium-section-bay p-1 rounded-lg ${isOccupied ? 'bay-occupied' : 'bg-slate-900/90 hover:bg-slate-800'} ${selectedCount ? 'ring-2 ring-emerald-400/80' : ''} border ${sec.tierBorder} flex flex-col justify-between items-center text-center">
+          <span class="text-[8px] font-mono font-bold ${sec.tierText} leading-none mb-1">${sec.code}</span>
+          <div class="grid grid-cols-4 gap-0.5 my-0.5">
+            ${seatDotsHtml}
+          </div>
+          <span class="text-[7px] font-mono ${isOccupied ? 'text-red-400 font-bold' : selectedCount ? 'text-emerald-300 font-bold' : 'text-slate-500'} leading-none mt-0.5">
+            ${isOccupied ? 'SOLD OUT' : selectedCount ? `${selectedCount} PICKED` : 'AVAILABLE'}
+          </span>
+        </div>
+      `;
+    }
+
+    /* ==========================================================================
+       DIRECT SEAT SELECTION CONTROLLER
+       ========================================================================== */
+    function toggleDirectSeatClick(seatId, secId, secName, row, seatNum, tierKey, price, e) {
+      if (e) e.stopPropagation();
+      
+      const index = AppState.selectedSeats.findIndex(s => s.id === seatId);
+
+      if (index > -1) {
+        AppState.selectedSeats.splice(index, 1);
+        showToast(`Removed Seat ${secId} • Row ${row}-${seatNum}`, 'amber');
+      } else {
+        if (AppState.selectedSeats.length >= 8) {
+          showToast('Maximum 8 seats per YALLA Pass booking', 'amber');
+          return;
+        }
+        AppState.selectedSeats.push({
+          id: seatId,
+          sectionId: secId,
+          sectionName: secName,
+          row: row,
+          seatNum: seatNum,
+          tierKey: tierKey,
+          price: AppState.pricingTiers[tierKey]
+        });
+        showToast(`Selected ${secId} • Row ${row}-${seatNum} (KES ${AppState.pricingTiers[tierKey].toLocaleString()})`, 'emerald');
+      }
+
+      updateInspectorSection(secId, secName, tierKey === 'vvip' ? 'VVIP Suite' : tierKey === 'cat1' ? 'Category 1' : tierKey === 'cat2' ? 'Category 2' : 'Category 3', price, false, `${Math.max(0, 8 - AppState.selectedSeats.filter(seat => seat.sectionId === secId).length)} seats in this section`);
+      renderDirectStadiumMap();
+      updateInvoiceLedger();
+    }
+
+    function removeSeatById(seatId) {
+      const index = AppState.selectedSeats.findIndex(s => s.id === seatId);
+      if (index > -1) {
+        AppState.selectedSeats.splice(index, 1);
+        renderDirectStadiumMap();
+        updateInvoiceLedger();
+      }
+    }
+
+    function clearAllSelectedSeats() {
+      AppState.selectedSeats = [];
+      renderDirectStadiumMap();
+      updateInvoiceLedger();
+      showToast('Selection cleared', 'amber');
+    }
+
+    function selectBestAvailable() {
+      const availableSection = AppState.sections.find(s => !s.isOccupied && (s.tierKey === 'vvip' || s.tierKey === 'cat1'));
+      if (availableSection) {
+        const seatId = `${availableSection.id}_A_01`;
+        if (!AppState.selectedSeats.some(s => s.id === seatId)) {
+          toggleDirectSeatClick(
+            seatId, 
+            availableSection.id, 
+            availableSection.standName, 
+            'A', 
+            '01', 
+            availableSection.tierKey, 
+            AppState.pricingTiers[availableSection.tierKey]
+          );
+        }
+      }
+    }
+
+    function updateInspectorSection(code, stand, tier, price, isOccupied, availability) {
+      document.getElementById('inspector-section').textContent = `${stand} • Section ${code}`;
+      document.getElementById('inspector-tier').textContent = tier;
+      document.getElementById('inspector-availability').textContent = isOccupied ? 'Sold out' : availability;
+      document.getElementById('inspector-price').textContent = `KES ${price.toLocaleString()}`;
+      const status = document.getElementById('inspector-status');
+      status.textContent = isOccupied ? 'Sold out' : 'Seats available';
+      status.className = `rounded-full border px-2 py-0.5 text-[10px] font-mono ${isOccupied ? 'border-red-500/30 bg-red-500/10 text-red-300' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'}`;
+      document.getElementById('inspector-copy').textContent = isOccupied ? 'This section is fully allocated. Choose another colored section.' : 'Click any bright seat dot in this section to add it to your invoice.';
+    }
+
+    function updateHudSection(code, stand, tier, price, isOccupied, availability = 'Seats available') {
+      document.getElementById('hud-section-name').textContent = `${stand} • Sec ${code}`;
+      document.getElementById('hud-section-tier').textContent = tier;
+      document.getElementById('hud-section-price').textContent = `KES ${price.toLocaleString()}`;
+      updateInspectorSection(code, stand, tier, price, isOccupied, availability);
+      
+      const statusElem = document.getElementById('hud-section-status');
+      if (isOccupied) {
+        statusElem.textContent = '✕ 100% Sold Out (Occupied)';
+        statusElem.className = 'text-red-400 font-bold';
+      } else {
+        statusElem.textContent = '● Available (Selectable)';
+        statusElem.className = 'text-emerald-400 font-medium';
+      }
+    }
+
+    function filterStadiumStand(stand) {
+      AppState.activeStandFilter = stand;
+      document.querySelectorAll('.stand-filter-pill').forEach(btn => {
+        btn.className = "stand-filter-pill px-2 py-1 rounded-lg text-slate-300 hover:text-white bg-slate-800/80 transition";
+      });
+      
+      const activeBtn = document.getElementById(`stand-btn-${stand}`);
+      if (activeBtn) activeBtn.className = "stand-filter-pill px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold transition";
+
+      const north = document.getElementById('stand-container-north');
+      const south = document.getElementById('stand-container-south');
+      const west = document.getElementById('stand-container-west');
+      const east = document.getElementById('stand-container-east');
+
+      if (stand === 'all') {
+        north.classList.remove('hidden');
+        south.classList.remove('hidden');
+        west.classList.remove('hidden');
+        east.classList.remove('hidden');
+      } else if (stand === 'north') {
+        north.classList.remove('hidden');
+        south.classList.add('hidden');
+        west.classList.add('hidden');
+        east.classList.add('hidden');
+      } else if (stand === 'south') {
+        south.classList.remove('hidden');
+        north.classList.add('hidden');
+        west.classList.add('hidden');
+        east.classList.add('hidden');
+      } else if (stand === 'west') {
+        west.classList.remove('hidden');
+        north.classList.add('hidden');
+        south.classList.add('hidden');
+        east.classList.add('hidden');
+      } else if (stand === 'east') {
+        east.classList.remove('hidden');
+        north.classList.add('hidden');
+        south.classList.add('hidden');
+        west.classList.add('hidden');
+      }
+
+      renderBenchmarkStadiumMap();
+    }
+
+    /* ==========================================================================
+       VIEW & NAVIGATION CONTROLLER
+       ========================================================================== */
+    function switchMainView(view) {
+      AppState.activeView = view;
+      const fanPortal = document.getElementById('view-fan-portal');
+      const adminSuite = document.getElementById('view-admin-suite');
+      const btnFan = document.getElementById('tab-btn-fan');
+      const btnAdmin = document.getElementById('tab-btn-admin');
+
+      if (view === 'fan') {
+        fanPortal.classList.remove('hidden');
+        adminSuite.classList.add('hidden');
+        btnFan.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-slate-950 shadow-md transition";
+        btnAdmin.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition";
+      } else {
+        fanPortal.classList.add('hidden');
+        adminSuite.classList.remove('hidden');
+        btnAdmin.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 shadow-md transition";
+        btnFan.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition";
+        renderAdminDataGrid();
+      }
+    }
+
+    function toggleMobileCheckoutDrawer() {
+      const drawer = document.getElementById('billing-stack-sidebar');
+      drawer.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /* ==========================================================================
+       AUTHENTICATION & YALLA PASS VERIFICATION
+       ========================================================================== */
+    function setAuthMode(mode) {
+      AppState.authMode = mode;
+      const emailTab = document.getElementById('auth-tab-email');
+      const phoneTab = document.getElementById('auth-tab-phone');
+      const emailForm = document.getElementById('auth-email-form');
+      const phoneForm = document.getElementById('auth-phone-form');
+
+      if (mode === 'email') {
+        emailTab.className = "px-2.5 py-1 rounded-md bg-slate-800 text-amber-400 font-medium transition";
+        phoneTab.className = "px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition";
+        emailForm.classList.remove('hidden');
+        phoneForm.classList.add('hidden');
+      } else {
+        phoneTab.className = "px-2.5 py-1 rounded-md bg-slate-800 text-amber-400 font-medium transition";
+        emailTab.className = "px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition";
+        phoneForm.classList.remove('hidden');
+        emailForm.classList.add('hidden');
+      }
+    }
+
+    function triggerYallaVerification() {
+      const btn = document.getElementById('btn-verify-yalla');
+      const btnText = document.getElementById('yalla-btn-text');
+      const resultBox = document.getElementById('yalla-verification-result');
+      const navStatus = document.getElementById('nav-fan-id-status');
+
+      btn.disabled = true;
+      btnText.innerHTML = `
+        <span class="inline-block w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
+        Verifying Database...
+      `;
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btnText.textContent = "Verified ✓";
+        btn.className = "px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs transition-all flex items-center justify-center gap-2";
+        resultBox.classList.remove('hidden');
+        
+        AppState.isYallaVerified = true;
+        navStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> <b class="text-emerald-300">Verified: Kipchumba J. (KE)</b>`;
+        
+        showToast('✓ YALLA Fan ID Clearance Approved & FastTrack Ready', 'emerald');
+      }, 700);
+    }
+
+    /* ==========================================================================
+       MATCH FIXTURE SELECTION & FILTERING
+       ========================================================================== */
+    function renderMatchCards(filteredList = AppState.matches) {
+      const container = document.getElementById('match-cards-container');
+      const countLabel = document.getElementById('filter-match-count');
+      countLabel.textContent = `${filteredList.length} Fixtures`;
+
+      if (filteredList.length === 0) {
+        container.innerHTML = `
+          <div class="glass-panel p-4 rounded-xl text-center text-xs text-slate-400 border border-slate-800">
+            No matches matching selected criteria.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filteredList.map(m => {
+        const isSelected = m.id === AppState.currentMatchId;
+        return `
+          <div onclick="selectMatch('${m.id}')" class="p-3.5 rounded-xl transition-all cursor-pointer border ${
+            isSelected 
+              ? 'bg-slate-900/90 border-amber-500 shadow-lg shadow-amber-500/10 ring-1 ring-amber-500/40' 
+              : 'glass-panel border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/50'
+          }">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded ${m.stockColor}">
+                ${m.stockStatus}
+              </span>
+              <span class="text-[10px] text-slate-400 font-mono">${m.date}</span>
+            </div>
+
+            <!-- Teams & Flags Matrix -->
+            <div class="flex items-center justify-between my-2">
+              <div class="flex items-center gap-2">
+                <span class="font-display font-bold text-sm text-white">${m.home}</span>
+                <span class="text-xs font-bold text-amber-400">VS</span>
+                <span class="font-display font-bold text-sm text-white">${m.away}</span>
+              </div>
+              <span class="text-xs font-mono font-bold text-slate-300">${m.time}</span>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-800/80">
+              <span class="truncate flex items-center gap-1">
+                <svg class="w-3 h-3 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                ${m.venue} (${m.capacity >= 1000 ? (m.capacity/1000) + 'k' : m.capacity})
+              </span>
+              <span class="text-[10px] font-bold ${isSelected ? 'text-amber-400' : 'text-slate-500'}">
+                ${isSelected ? 'ACTIVE SELECTION' : 'SELECT →'}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectMatch(matchId) {
+      AppState.currentMatchId = matchId;
+      const match = AppState.matches.find(m => m.id === matchId);
+      
+      document.getElementById('active-stadium-title').textContent = match.venue;
+      document.getElementById('active-match-stage-badge').textContent = match.stage;
+      document.getElementById('active-match-subtitle').textContent = `${match.home} vs ${match.away} • Capacity: ${match.capacity.toLocaleString()} Seats`;
+      
+      document.getElementById('nav-capacity-val').textContent = `${match.capacity.toLocaleString()} Seats`;
+      document.getElementById('nav-capacity-avail').textContent = `${(match.capacity - match.occupiedSeats).toLocaleString()} Available`;
+      
+      document.getElementById('kpi-seats-dispatched').textContent = `${match.occupiedSeats.toLocaleString()} / ${match.capacity.toLocaleString()}`;
+      document.getElementById('kpi-cap-pct').textContent = `${((match.occupiedSeats / match.capacity) * 100).toFixed(1)}% Arena Capacity`;
+
+      renderMatchCards();
+      renderDirectStadiumMap();
+      showToast(`Switched Stadium: ${match.venue}`, 'amber');
+    }
+
+    function filterMatches(type, val) {
+      let filtered = [...AppState.matches];
+      
+      if (type === 'venue') {
+        document.querySelectorAll('.venue-filter-btn').forEach(b => {
+          if (b.dataset.filter === val) {
+            b.className = "venue-filter-btn px-2.5 py-2 rounded-lg text-xs font-semibold bg-amber-500 text-slate-950 transition flex items-center justify-between";
+          } else {
+            b.className = "venue-filter-btn px-2.5 py-2 rounded-lg text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition flex items-center justify-between";
+          }
+        });
+        if (val !== 'all') {
+          filtered = filtered.filter(m => m.venueKey === val);
+          const matched = AppState.matches.find(m => m.venueKey === val);
+          if (matched) selectMatch(matched.id);
+        }
+      } else if (type === 'stage') {
+        document.querySelectorAll('.stage-filter-btn').forEach(b => {
+          if (b.dataset.stage === val) {
+            b.className = "stage-filter-btn px-2 py-1 rounded-md text-[11px] font-semibold bg-amber-500 text-slate-950 transition";
+          } else {
+            b.className = "stage-filter-btn px-2 py-1 rounded-md text-[11px] font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition";
+          }
+        });
+        if (val !== 'all') {
+          filtered = filtered.filter(m => m.stageKey === val);
+        }
+      }
+
+      renderMatchCards(filtered);
+    }
+
+    /* ==========================================================================
+       TRANSACTION CHECKOUT DRAWER & LEDGER CALCULATOR
+       ========================================================================== */
+    function updateInvoiceLedger() {
+      const count = AppState.selectedSeats.length;
+      document.getElementById('cart-item-count').textContent = `${count} ${count === 1 ? 'Seat' : 'Seats'} Selected`;
+      document.getElementById('mobile-cart-badge').textContent = count;
+      document.getElementById('center-pitch-counter').textContent = `${count} ${count === 1 ? 'Seat' : 'Seats'} Selected`;
+
+      const itemsList = document.getElementById('cart-items-list');
+
+      if (count === 0) {
+        itemsList.innerHTML = `
+          <div class="p-3 rounded-xl bg-slate-900/60 border border-dashed border-slate-800 text-center text-xs text-slate-500 py-6">
+            No seats selected yet.<br>Click colored seat dots directly on the stadium map to reserve!
+          </div>
+        `;
+      } else {
+        itemsList.innerHTML = AppState.selectedSeats.map(s => {
+          const currentPrice = AppState.pricingTiers[s.tierKey];
+          return `
+            <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-2 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full ${
+                  s.tierKey === 'vvip' ? 'bg-amber-400' : s.tierKey === 'cat1' ? 'bg-blue-400' : s.tierKey === 'cat2' ? 'bg-emerald-400' : 'bg-orange-400'
+                }"></span>
+                <div>
+                  <p class="font-bold text-white font-mono text-[11px]">${s.sectionId} • Row ${s.row}-${s.seatNum}</p>
+                  <p class="text-[10px] text-slate-400 truncate max-w-[130px]">${s.sectionName}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-amber-400 text-xs">KES ${currentPrice.toLocaleString()}</span>
+                <button onclick="removeSeatById('${s.id}')" title="Remove Seat" class="p-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-red-400 transition">
+                  ✕
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const subtotal = AppState.selectedSeats.reduce((sum, s) => sum + AppState.pricingTiers[s.tierKey], 0);
+      const vat = Math.round(subtotal * 0.16);
+      const total = subtotal + vat;
+
+      document.getElementById('ledger-subtotal').textContent = `KES ${subtotal.toLocaleString()}`;
+      document.getElementById('ledger-vat').textContent = `KES ${vat.toLocaleString()}`;
+      document.getElementById('ledger-total').textContent = `KES ${total.toLocaleString()}`;
+      document.getElementById('checkout-btn-text').textContent = total > 0 ? `Authorize & Pay KES ${total.toLocaleString()}` : `Authorize & Pay KES 0`;
+    }
+
+    function setPaymentMethod(method) {
+      AppState.paymentMethod = method;
+      const mpesaTab = document.getElementById('pay-tab-mpesa');
+      const cardTab = document.getElementById('pay-tab-card');
+      const mpesaView = document.getElementById('payment-mpesa-view');
+      const cardView = document.getElementById('payment-card-view');
+
+      if (method === 'mpesa') {
+        mpesaTab.className = "py-2 px-2 rounded-lg font-semibold bg-emerald-600 text-white shadow flex items-center justify-center gap-1.5 transition";
+        cardTab.className = "py-2 px-2 rounded-lg font-medium text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5 transition";
+        mpesaView.classList.remove('hidden');
+        cardView.classList.add('hidden');
+      } else {
+        cardTab.className = "py-2 px-2 rounded-lg font-semibold bg-blue-600 text-white shadow flex items-center justify-center gap-1.5 transition";
+        mpesaTab.className = "py-2 px-2 rounded-lg font-medium text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5 transition";
+        cardView.classList.remove('hidden');
+        mpesaView.classList.add('hidden');
+      }
+    }
+
+    function startHoldCountdown() {
+      if (AppState.countdownInterval) clearInterval(AppState.countdownInterval);
+      
+      const timerElement = document.getElementById('countdown-timer');
+      AppState.countdownInterval = setInterval(() => {
+        if (AppState.countdownSeconds <= 0) {
+          clearInterval(AppState.countdownInterval);
+          timerElement.textContent = "00:00";
+          timerElement.classList.add('text-red-500');
+          showToast('⚠️ Seat reservation hold expired. Refreshing inventory...', 'amber');
+          return;
+        }
+
+        AppState.countdownSeconds--;
+        const mins = Math.floor(AppState.countdownSeconds / 60);
+        const secs = AppState.countdownSeconds % 60;
+        timerElement.textContent = `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+      }, 1000);
+    }
+
+    function executeCheckoutPayment() {
+      if (AppState.selectedSeats.length === 0) {
+        showToast('Please select at least 1 stadium seat on the map', 'amber');
+        return;
+      }
+
+      const total = AppState.selectedSeats.reduce((sum, s) => sum + AppState.pricingTiers[s.tierKey], 0) * 1.16;
+      const btn = document.getElementById('btn-main-checkout');
+      const btnText = document.getElementById('checkout-btn-text');
+
+      btn.disabled = true;
+      btnText.innerHTML = `
+        <span class="inline-block w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
+        ${AppState.paymentMethod === 'mpesa' ? 'Dispatching M-Pesa STK Push...' : 'Processing 3D Secure Card...'}
+      `;
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btnText.textContent = `Authorize & Pay KES ${Math.round(total).toLocaleString()}`;
+        
+        const match = AppState.matches.find(m => m.id === AppState.currentMatchId);
+        const seatCoords = AppState.selectedSeats.map(s => `${s.sectionId}-${s.row}${s.seatNum}`).join(', ');
+
+        const newRow = {
+          uuid: `usr_${Math.random().toString(36).substring(2, 6)}-${Date.now().toString().slice(-4)}`,
+          yallaId: AppState.fanProfile.id,
+          passportName: AppState.fanProfile.name,
+          email: AppState.fanProfile.email,
+          phone: AppState.fanProfile.phone,
+          seatCoord: `${seatCoords} (${match.venueKey.toUpperCase()})`,
+          status: AppState.paymentMethod === 'mpesa' ? 'Paid via M-Pesa' : 'Paid via Card',
+          statusColor: AppState.paymentMethod === 'mpesa' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+        };
+
+        AppState.supabaseRows.unshift(newRow);
+        openReceiptModal(match);
+      }, 1200);
+    }
+
+    function openReceiptModal(match) {
+      const modal = document.getElementById('modal-ticket-receipt');
+      document.getElementById('modal-ticket-match').textContent = `${match.home} vs ${match.away}`;
+      document.getElementById('modal-ticket-venue').textContent = `${match.venue} (${match.capacity >= 1000 ? (match.capacity/1000) + 'k' : match.capacity})`;
+      document.getElementById('modal-fan-email').textContent = AppState.fanProfile.email;
+      document.getElementById('modal-ticket-fan-id').textContent = AppState.fanProfile.id;
+      document.getElementById('modal-ticket-fan-name').textContent = AppState.fanProfile.name;
+      
+      const seatsContainer = document.getElementById('modal-ticket-seats');
+      seatsContainer.innerHTML = AppState.selectedSeats.map(s => `
+        <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono">
+          ${s.sectionId} • Row ${s.row} • #${s.seatNum}
+        </span>
+      `).join('');
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeReceiptModal() {
+      const modal = document.getElementById('modal-ticket-receipt');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      
+      AppState.selectedSeats = [];
+      renderDirectStadiumMap();
+      updateInvoiceLedger();
+      showToast('🎉 Digital Pass stored in your CAF YALLA Wallet', 'emerald');
+    }
+
+    /* ==========================================================================
+       SUPER-ADMIN SUITE & DYNAMIC PRICING CONTROLLER
+       ========================================================================== */
+    function updatePriceLabels() {
+      const p = AppState.pricingTiers;
+      document.getElementById('legend-price-vvip').textContent = `KES ${p.vvip.toLocaleString()}`;
+      document.getElementById('legend-price-cat1').textContent = `KES ${p.cat1.toLocaleString()}`;
+      document.getElementById('legend-price-cat2').textContent = `KES ${p.cat2.toLocaleString()}`;
+      document.getElementById('legend-price-cat3').textContent = `KES ${p.cat3.toLocaleString()}`;
+
+      document.getElementById('header-price-cat3-n').textContent = `KES ${p.cat3.toLocaleString()} / seat`;
+      document.getElementById('header-price-cat3-s').textContent = `KES ${p.cat3.toLocaleString()} / seat`;
+    }
+
+    function commitAdminPriceMatrix() {
+      const vvipVal = parseInt(document.getElementById('admin-price-vvip').value) || 25000;
+      const cat1Val = parseInt(document.getElementById('admin-price-cat1').value) || 5000;
+      const cat2Val = parseInt(document.getElementById('admin-price-cat2').value) || 2500;
+      const cat3Val = parseInt(document.getElementById('admin-price-cat3').value) || 1000;
+
+      AppState.pricingTiers = {
+        vvip: vvipVal,
+        cat1: cat1Val,
+        cat2: cat2Val,
+        cat3: cat3Val
+      };
+
+      updatePriceLabels();
+      renderDirectStadiumMap();
+      updateInvoiceLedger();
+
+      showToast('✓ Global Stadium Prices Recalculated Across 120 Sections', 'emerald');
+    }
+
+    function applyPresetMultiplier(multiplier) {
+      document.getElementById('admin-price-vvip').value = Math.round(AppState.pricingTiers.vvip * multiplier);
+      document.getElementById('admin-price-cat1').value = Math.round(AppState.pricingTiers.cat1 * multiplier);
+      document.getElementById('admin-price-cat2').value = Math.round(AppState.pricingTiers.cat2 * multiplier);
+      document.getElementById('admin-price-cat3').value = Math.round(AppState.pricingTiers.cat3 * multiplier);
+      commitAdminPriceMatrix();
+    }
+
+    function resetBasePrices() {
+      document.getElementById('admin-price-vvip').value = 25000;
+      document.getElementById('admin-price-cat1').value = 5000;
+      document.getElementById('admin-price-cat2').value = 2500;
+      document.getElementById('admin-price-cat3').value = 1000;
+      commitAdminPriceMatrix();
+    }
+
+    function renderAdminDataGrid(rows = AppState.supabaseRows) {
+      const tbody = document.getElementById('admin-data-grid-body');
+      
+      if (rows.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="p-4 text-center text-slate-500">No matching Supabase ledger records found.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = rows.map((r) => `
+        <tr class="hover:bg-slate-900/50 transition">
+          <td class="p-3 text-slate-400 font-mono text-[10px]">${r.uuid}</td>
+          <td class="p-3 font-mono font-bold text-amber-400">${r.yallaId}</td>
+          <td class="p-3 font-sans font-medium text-slate-200">${r.passportName}</td>
+          <td class="p-3 text-slate-400">${r.email}</td>
+          <td class="p-3 text-slate-300 font-mono">${r.phone}</td>
+          <td class="p-3 font-mono text-slate-200 font-semibold">${r.seatCoord}</td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono border ${r.statusColor}">
+              ${r.status}
+            </span>
+          </td>
+          <td class="p-3 text-right">
+            <div class="flex items-center justify-end gap-1.5 font-sans">
+              <button onclick="adminRevokeFanId('${r.uuid}')" class="px-2 py-1 rounded bg-red-950/60 hover:bg-red-900 text-red-300 border border-red-800/60 text-[10px] font-semibold transition">
+                Revoke
+              </button>
+              <button onclick="adminDispatchTicket('${r.uuid}', '${r.email}')" class="px-2 py-1 rounded bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-800/60 text-[10px] font-semibold transition">
+                Dispatch
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filterAdminTable() {
+      const query = document.getElementById('admin-table-search').value.toLowerCase();
+      const status = document.getElementById('admin-status-filter').value;
+
+      let filtered = AppState.supabaseRows.filter(r => {
+        const matchesQuery = 
+          r.uuid.toLowerCase().includes(query) ||
+          r.yallaId.toLowerCase().includes(query) ||
+          r.passportName.toLowerCase().includes(query) ||
+          r.email.toLowerCase().includes(query);
+
+        const matchesStatus = status === 'all' || r.status === status;
+        return matchesQuery && matchesStatus;
+      });
+
+      renderAdminDataGrid(filtered);
+    }
+
+    function adminRevokeFanId(uuid) {
+      const record = AppState.supabaseRows.find(r => r.uuid === uuid);
+      if (record) {
+        record.status = 'Revoked';
+        record.statusColor = 'bg-red-500/10 text-red-400 border-red-500/30';
+        renderAdminDataGrid();
+        showToast(`🚫 Revoked Fan ID clearance for ${record.passportName}`, 'amber');
+      }
+    }
+
+    function adminDispatchTicket(uuid, email) {
+      showToast(`⚡ Manual e-Ticket re-dispatched to ${email}`, 'emerald');
+    }
+
+    function simulateNewSupabaseRecord() {
+      const sampleNames = ['Abdi Farah', 'Wanjiku Mwangi', 'Chinedu Okeke', 'Tariq Al-Mansoor'];
+      const randomName = sampleNames[Math.floor(Math.random() * sampleNames.length)];
+      const randomSec = AppState.sections[Math.floor(Math.random() * AppState.sections.length)];
+
+      const mockRecord = {
+        uuid: `usr_${Math.random().toString(36).substring(2, 6)}-${Date.now().toString().slice(-4)}`,
+        yallaId: `YALLA-AF-2026-${Math.floor(10000 + Math.random() * 90000)}`,
+        passportName: randomName,
+        email: `${randomName.toLowerCase().replace(' ', '.')}@caf-fans.org`,
+        phone: `+254 7${Math.floor(10000000 + Math.random() * 90000000)}`,
+        seatCoord: `${randomSec.code} / Row A / #01`,
+        status: 'Paid via M-Pesa',
+        statusColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+      };
+
+      AppState.supabaseRows.unshift(mockRecord);
+      renderAdminDataGrid();
+      showToast(`🟢 Supabase Realtime: Ingested Booking (${mockRecord.passportName})`, 'emerald');
+    }
+
+    /* ==========================================================================
+       TOAST SYSTEM HELPER
+       ========================================================================== */
+    function showToast(message, type = 'emerald') {
+      const toast = document.getElementById('toast-notification');
+      const msgElem = document.getElementById('toast-message');
+      const iconElem = document.getElementById('toast-icon');
+
+      msgElem.textContent = message;
+      iconElem.textContent = type === 'emerald' ? '✓' : '⚠️';
+      
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3000);
+    }
+
+    /* ==========================================================================
+       INITIAL LOAD BOOTSTRAP
+       ========================================================================== */
+    document.addEventListener('DOMContentLoaded', () => {
+      initialize120StadiumSections();
+      renderMatchCards();
+      renderDirectStadiumMap();
+      updateInvoiceLedger();
+      startHoldCountdown();
+      renderAdminDataGrid();
+    });
+  </script>
+<footer class="site-shell-footer">
+  <div class="site-shell-footer-inner">
+    <div class="site-shell-sponsor-group"><h2>Official title sponsor</h2><div class="site-shell-sponsors"><a href="https://totalenergies.com/" target="_blank" rel="noreferrer"><img src="img/afcon25_sponsors-te_28107f5b5e.png" alt="TotalEnergies"></a></div></div>
+    <div class="site-shell-sponsor-group"><h2>Official global partners</h2><div class="site-shell-sponsors"><a href="#"><img src="img/afcon25_sponsors-1xbet_76c7900846.png" alt="1xBet"></a><a href="#"><img src="img/afcon25_sponsors-eu_8cd3d50b45.png" alt="European Union"></a><a href="#"><img src="img/afcon25_sponsors-visa_f995c7505b.png" alt="Visa"></a><a href="#"><img src="img/afcon25_sponsors-tecno_375816cc22.png" alt="Tecno"></a><a href="#"><img src="img/afcon25_sponsors-air-maroc_11178a808c.png" alt="Royal Air Maroc"></a><a href="#"><img src="img/afcon25_sponsors-orange_da5bb600b6.png" alt="Orange"></a><a href="#"><img src="img/afcon25_sponsors-puma_960a43e0fc.png" alt="Puma"></a><a href="#"><img src="img/sponsor-suzuki_3f44de9a7f.png" alt="Suzuki"></a></div></div>
+    <div class="site-shell-sponsor-group"><h2>Official competition sponsors</h2><div class="site-shell-sponsors"><a href="#"><img src="img/afcon25_sponsors-danone_05cbfa0354.png" alt="Danone"></a><a href="#"><img src="img/afcon25_sponsors-unilever_44be1a0afa.png" alt="Rexona"></a><a href="#"><img src="img/afcon25_sponsors-lonaci_928fe7605b.png" alt="LONACI"></a><a href="#"><img src="img/afcon25_sponsors-midea_f27de16fd4.png" alt="Midea"></a><a href="#"><img src="img/afcon25_sponsors-apsonic_0203981fe9.png" alt="Apsonic"></a><a href="#"><img src="img/afcon25_sponsors-website_konami_08c33a953c.png" alt="Konami"></a><a href="#"><img src="img/afcon25_sponsors-website_visit-morocco_0151986ae4.png" alt="Visit Morocco"></a><a href="#"><img src="img/afcon25_sponsors-website_oncf_214e2091df.png" alt="ONCF"></a><a href="#"><img src="img/afcon25_sponsors-website_ocp_e694c6715a.png" alt="OCP"></a><a href="#"><img src="img/afcon25_sponsors-website_morocco-now_43746508f5.png" alt="Morocco Now"></a></div></div>
+    <div class="site-shell-sponsor-group"><h2>Official suppliers</h2><div class="site-shell-sponsors"><a href="#"><img src="img/afcon25_sponsors-agl_3465c09341.png" alt="Africa Global Logistics"></a><a href="#"><img src="img/afcon25_sponsors-la-vache-qui-rit_647aa82a19.png" alt="La Vache qui rit"></a><a href="#"><img src="img/afcon25_sponsors-website_sidi-ali_85b357069a.png" alt="Sidi Ali"></a><a href="#"><img src="img/afcon25_sponsors-website_acibadem_c131d746bb.png" alt="Acibadem"></a></div></div>
+    <div class="site-shell-footer-bottom"><span>AFCON PAMOJA 2027 Ticketing</span><span>Official tournament partners and suppliers</span></div>
+  </div>
+</footer>
+  <script src="header-menu.js"></script>
+</body>
+</html>
