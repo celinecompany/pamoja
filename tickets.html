@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Buy Tickets | AFCON PAMOJA 2026</title>
+
+  <link rel="stylesheet" href="site-shell.css">
+  <link rel="icon" type="image/svg+xml" href="img/caf-logo-header.svg">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              gold: '#F59E0B',
+              goldLight: '#FBBF24',
+              goldDark: '#D97706',
+              emerald: '#10B981',
+              emeraldDark: '#059669',
+              dark: '#030712',
+              darkCard: '#0B1120',
+              darkBorder: '#1E293B',
+              accent: '#38BDF8'
+            }
+          },
+
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+
+    /* =========================================================
+       BASE
+    ========================================================= */
+
+    :root {
+      color-scheme: dark;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(245, 158, 11, 0.08),
+          transparent 30%
+        ),
+        #030712;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #0B1120;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #1E293B;
+      border-radius: 9999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+
+
+    /* =========================================================
+       TICKETING SHELL
+    ========================================================= */
+
+    .ticket-shell {
+      width: min(1720px, calc(100% - 24px));
+      margin: 0 auto;
+      padding: 18px 0 40px;
+    }
+
+    .glass-panel {
+      background: rgba(11, 17, 32, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-input {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(51, 65, 85, 0.8);
+    }
+
+    .glass-input:focus {
+      border-color: #F59E0B;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.20);
+      outline: none;
+    }
+
+
+    /* =========================================================
+       STEP BAR
+    ========================================================= */
+
+    .checkout-step {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .checkout-step-number {
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 999px;
+
+      background: #0f172a;
+      border: 1px solid #334155;
+
+      color: #64748b;
+
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .checkout-step.active .checkout-step-number {
+      background: #f59e0b;
+      border-color: #fbbf24;
+      color: #030712;
+      box-shadow: 0 0 18px rgba(245,158,11,.35);
+    }
+
+    .checkout-step.complete .checkout-step-number {
+      background: #10b981;
+      border-color: #6ee7b7;
+      color: #03120d;
+    }
+
+    .checkout-step-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #64748b;
+      white-space: nowrap;
+    }
+
+    .checkout-step.active .checkout-step-label {
+      color: #fbbf24;
+    }
+
+    .checkout-step.complete .checkout-step-label {
+      color: #6ee7b7;
+    }
+
+    .checkout-step-line {
+      flex: 1;
+      height: 1px;
+      background: #1e293b;
+      min-width: 18px;
+    }
+
+
+    /* =========================================================
+       MATCH HEADER
+    ========================================================= */
+
+    .match-banner {
+      position: relative;
+      overflow: hidden;
+
+      border-radius: 18px;
+
+      background:
+        linear-gradient(
+          105deg,
+          rgba(245, 158, 11, .10),
+          rgba(15, 23, 42, .96) 35%,
+          rgba(16, 185, 129, .07)
+        );
+
+      border: 1px solid rgba(245, 158, 11, .28);
+    }
+
+    .match-banner::after {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      right: -100px;
+      top: -130px;
+
+      background: rgba(245, 158, 11, .10);
+      filter: blur(55px);
+      border-radius: 50%;
+
+      pointer-events: none;
+    }
+
+    .team-name {
+      font-family: Outfit, sans-serif;
+      font-weight: 900;
+      letter-spacing: -.025em;
+    }
+
+
+    /* =========================================================
+       STADIUM MAP
+       
+       These styles intentionally retain the same classes/visual
+       treatment used by the current GitHub index.html map.
+    ========================================================= */
+
+    .stadium-bowl-wrapper {
+      background:
+        radial-gradient(
+          ellipse at center,
+          #0B1120 0%,
+          #030712 100%
+        );
+
+      border: 1px solid #1E293B;
+    }
+
+    .stadium-section-bay {
+      transition:
+        all .2s cubic-bezier(.4,0,.2,1);
+    }
+
+    .stadium-section-bay:hover:not(.bay-occupied) {
+      transform: translateY(-2px) scale(1.02);
+      filter: brightness(1.2);
+      z-index: 10;
+    }
+
+    .bay-occupied {
+      opacity: .35;
+      filter: grayscale(.85);
+      cursor: not-allowed !important;
+
+      background:
+        repeating-linear-gradient(
+          45deg,
+          rgba(15,23,42,.9),
+          rgba(15,23,42,.9) 6px,
+          rgba(30,41,59,.6) 6px,
+          rgba(30,41,59,.6) 12px
+        ) !important;
+    }
+
+    .map-seat-node {
+      transition: all .15s ease-in-out;
+    }
+
+    .map-seat-node:hover:not(.seat-node-occupied) {
+      transform: scale(1.45);
+      z-index: 30;
+      box-shadow: 0 0 10px rgba(255,255,255,.5);
+    }
+
+    .seat-node-occupied {
+      opacity: .28;
+      cursor: not-allowed !important;
+      background-color: #334155 !important;
+      border-color: #1e293b !important;
+    }
+
+    .seat-node-selected {
+      background-color: #10B981 !important;
+      border-color: #6ee7b7 !important;
+
+      box-shadow:
+        0 0 12px #10B981,
+        0 0 4px #fff !important;
+
+      animation: pulse 1.5s infinite;
+      z-index: 25;
+      transform: scale(1.25);
+    }
+
+    #stadium-interactive-svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 620px;
+      margin: 0 auto;
+      overflow: visible;
+    }
+
+    #stadium-interactive-svg path {
+      cursor: pointer;
+
+      transition:
+        fill .2s ease,
+        opacity .2s ease,
+        filter .2s ease,
+        stroke .2s ease;
+    }
+
+    #stadium-interactive-svg path:hover {
+      filter:
+        brightness(1.35)
+        drop-shadow(
+          0 0 8px rgba(255,255,255,.65)
+        );
+
+      stroke: #ffffff !important;
+      stroke-width: 2px !important;
+      opacity: 1 !important;
+    }
+
+    #stadium-interactive-svg path.svg-seat-selected {
+      filter:
+        brightness(1.45)
+        drop-shadow(
+          0 0 12px rgba(16,185,129,.95)
+        ) !important;
+
+      stroke: #6ee7b7 !important;
+      stroke-width: 3px !important;
+      opacity: 1 !important;
+    }
+
+    #stadium-interactive-svg [id="Layer_1"] path:not(.svg-seat-selected) {
+      cursor: default;
+    }
+
+    #stadium-svg-map-wrapper {
+      background:
+        radial-gradient(
+          ellipse at center,
+          rgba(15,23,42,.95) 0%,
+          rgba(3,7,18,.98) 100%
+        );
+    }
+
+
+    /* =========================================================
+       MAP LOADING STATE
+    ========================================================= */
+
+    .map-loading {
+      min-height: 500px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background:
+        radial-gradient(
+          ellipse at center,
+          rgba(15,23,42,.95),
+          rgba(3,7,18,.98)
+        );
+    }
+
+    .map-spinner {
+      width: 42px;
+      height: 42px;
+
+      border-radius: 50%;
+
+      border: 3px solid #1e293b;
+      border-top-color: #f59e0b;
+
+      animation: mapSpin .8s linear infinite;
+    }
+
+    @keyframes mapSpin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+
+    /* =========================================================
+       MAP OVERLAY
+    ========================================================= */
+
+    .map-overlay-card {
+      background: rgba(3, 7, 18, .88);
+      border: 1px solid rgba(255,255,255,.09);
+      backdrop-filter: blur(12px);
+    }
+
+
+    /* =========================================================
+       SEAT SUMMARY
+    ========================================================= */
+
+    .seat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+
+      padding: 7px 9px;
+
+      border-radius: 9px;
+
+      background: rgba(16,185,129,.09);
+      border: 1px solid rgba(16,185,129,.28);
+
+      color: #a7f3d0;
+
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+    }
+
+    .seat-chip button {
+      color: #6ee7b7;
+      transition: color .15s ease;
+    }
+
+    .seat-chip button:hover {
+      color: white;
+    }
+
+
+    /* =========================================================
+       PRICE ROWS
+    ========================================================= */
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+
+      padding: 8px 0;
+
+      font-size: 12px;
+    }
+
+    .price-row.total {
+      margin-top: 6px;
+      padding-top: 14px;
+
+      border-top: 1px solid #1e293b;
+
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+
+    /* =========================================================
+       PAYMENT
+    ========================================================= */
+
+    .payment-option {
+      border: 1px solid #1e293b;
+      background: rgba(15,23,42,.55);
+
+      transition: all .15s ease;
+    }
+
+    .payment-option:hover {
+      border-color: #475569;
+    }
+
+    .payment-option.active {
+      border-color: rgba(245,158,11,.7);
+      background: rgba(245,158,11,.08);
+      box-shadow: 0 0 0 1px rgba(245,158,11,.15);
+    }
+
+
+    /* =========================================================
+       MOBILE
+    ========================================================= */
+
+    @media (max-width: 767px) {
+
+      .ticket-shell {
+        width: min(100% - 16px, 1720px);
+        padding-top: 10px;
+      }
+
+      .checkout-step-label {
+        display: none;
+      }
+
+      .checkout-step-line {
+        min-width: 10px;
+      }
+
+      #stadium-interactive-svg {
+        max-height: none;
+      }
+    }
+
+  </style>
+</head>
+
+
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen antialiased overflow-x-hidden">
+
+  <!-- =========================================================
+       SITE HEADER
+  ========================================================= -->
+
+  <nav class="site-public-nav" aria-label="Main navigation">
+
+    <div
+      class="site-shell-flag-key"
+      aria-label="Flag colors for Tanzania, Kenya and Uganda"
+    >
+      <span class="flag-tz">Tanzania</span>
+      <span class="flag-ke">Kenya</span>
+      <span class="flag-ug">Uganda</span>
+    </div>
+
+    <div class="site-public-nav-inner">
+
+      <a
+        class="site-public-nav-brand"
+        href="index.html"
+      >
+        <img
+          src="img/caf-logo-header.svg"
+          alt="CAF"
+        >
+
+        <span>AFCON PAMOJA 2026</span>
+      </a>
+
+      <div class="site-public-nav-links">
+
+        <a href="index.html">
+          Home
+        </a>
+
+        <a href="about.html">
+          About us
+        </a>
+
+        <a href="fixtures.html">
+          Fixtures
+        </a>
+
+        <a href="venues.html">
+          Venues
+        </a>
+
+        <a href="faq.html">
+          FAQ
+        </a>
+
+        <a href="contact.html">
+          Contact us
+        </a>
+
+        <a
+          class="nav-ticket-link"
+          href="index.html"
+        >
+          Get tickets
+        </a>
+
+      </div>
+    </div>
+  </nav>
+
+
+  <!-- =========================================================
+       MAIN
+  ========================================================= -->
+
+  <main class="ticket-shell">
+
+
+    <!-- =======================================================
+         CHECKOUT PROGRESS
+    ======================================================== -->
+
+    <section
+      class="glass-panel rounded-2xl p-3 sm:p-4 mb-4"
+      aria-label="Ticket purchase progress"
+    >
+
+      <div class="flex items-center gap-2 sm:gap-4">
+
+        <div
+          class="checkout-step active"
+          id="checkout-step-match"
+        >
+          <span class="checkout-step-number">
+            1
+          </span>
+
+          <span class="checkout-step-label">
+            Fixture
+          </span>
+        </div>
+
+        <div class="checkout-step-line"></div>
+
+        <div
+          class="checkout-step active"
+          id="checkout-step-seat"
+        >
+          <span class="checkout-step-number">
+            2
+          </span>
+
+          <span class="checkout-step-label">
+            Seats
+          </span>
+        </div>
+
+        <div class="checkout-step-line"></div>
+
+        <div
+          class="checkout-step"
+          id="checkout-step-details"
+        >
+          <span class="checkout-step-number">
+            3
+          </span>
+
+          <span class="checkout-step-label">
+            Details
+          </span>
+        </div>
+
+        <div class="checkout-step-line"></div>
+
+        <div
+          class="checkout-step"
+          id="checkout-step-payment"
+        >
+          <span class="checkout-step-number">
+            4
+          </span>
+
+          <span class="checkout-step-label">
+            Payment
+          </span>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         SELECTED MATCH
+    ======================================================== -->
+
+    <section
+      id="match-banner"
+      class="match-banner mb-5"
+    >
+
+      <div class="relative z-10 p-5 sm:p-6">
+
+        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
+
+          <div>
+
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+
+              <span
+                id="match-stage"
+                class="px-2.5 py-1 rounded-full text-[10px] uppercase tracking-widest font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30"
+              >
+                Grand Opening Match
+              </span>
+
+              <span
+                id="match-status"
+                class="px-2.5 py-1 rounded-full text-[10px] uppercase tracking-widest font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30"
+              >
+                ● High Demand
+              </span>
+
+            </div>
+
+
+            <div class="flex flex-wrap items-center gap-3 sm:gap-5">
+
+              <div>
+                <div
+                  id="match-home"
+                  class="team-name text-2xl sm:text-3xl text-white"
+                >
+                  Kenya 🇰🇪
+                </div>
+              </div>
+
+              <div
+                class="w-10 h-10 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center font-mono text-[10px] text-slate-500"
+              >
+                VS
+              </div>
+
+              <div>
+                <div
+                  id="match-away"
+                  class="team-name text-2xl sm:text-3xl text-white"
+                >
+                  Senegal 🇸🇳
+                </div>
+              </div>
+
+            </div>
+
+            <div
+              id="match-date-time"
+              class="mt-3 text-sm text-slate-400"
+            >
+              Fri, 18 Sep 2026 · 20:00 EAT
+            </div>
+
+          </div>
+
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+
+            <div class="px-4 py-3 rounded-xl bg-slate-950/60 border border-slate-800">
+
+              <div class="text-[9px] uppercase tracking-widest text-slate-500">
+                Venue
+              </div>
+
+              <div
+                id="match-venue"
+                class="mt-1 text-xs font-semibold text-slate-200"
+              >
+                Moi International Sports Centre, Kasarani
+              </div>
+
+            </div>
+
+            <div class="px-4 py-3 rounded-xl bg-slate-950/60 border border-slate-800">
+
+              <div class="text-[9px] uppercase tracking-widest text-slate-500">
+                Capacity
+              </div>
+
+              <div
+                id="match-capacity"
+                class="mt-1 text-xs font-mono font-semibold text-slate-200"
+              >
+                60,000
+              </div>
+
+            </div>
+
+            <a
+              href="index.html"
+              class="px-4 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 transition"
+            >
+
+              <div class="text-[9px] uppercase tracking-widest text-slate-500">
+                Fixture
+              </div>
+
+              <div class="mt-1 text-xs font-semibold text-amber-400">
+                Change match →
+              </div>
+
+            </a>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         MAIN TICKETING WORKSPACE
+    ======================================================== -->
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+
+
+      <!-- =====================================================
+           LEFT: MAP
+      ====================================================== -->
+
+      <section class="xl:col-span-8 space-y-4">
+
+
+        <!-- Map header -->
+
+        <div class="glass-panel rounded-2xl p-4 sm:p-5 border border-slate-800">
+
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
+            <div>
+
+              <div class="flex items-center gap-2">
+
+                <span
+                  class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"
+                ></span>
+
+                <span class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold">
+                  Live Seat Selection
+                </span>
+
+              </div>
+
+              <h1 class="font-display font-black text-xl sm:text-2xl text-white mt-1">
+                Select your seats
+              </h1>
+
+              <p class="text-xs text-slate-400 mt-1">
+                Choose available sections directly from the stadium map.
+              </p>
+
+            </div>
+
+
+            <div class="flex gap-2">
+
+              <button
+                type="button"
+                id="best-available-btn"
+                class="px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition"
+              >
+                ⚡ Best Available
+              </button>
+
+              <button
+                type="button"
+                id="clear-seats-btn"
+                class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold transition"
+              >
+                Clear
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             PRICE LEGEND
+        ================================================== -->
+
+        <div class="glass-panel rounded-2xl p-3 sm:p-4 border border-slate-800">
+
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+
+            <div class="flex items-center gap-2 p-2 rounded-xl bg-amber-500/10 border border-amber-500/25">
+
+              <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+
+              <div>
+                <div class="text-[10px] font-bold text-amber-400">
+                  VVIP Suite
+                </div>
+
+                <div
+                  id="legend-price-vvip"
+                  class="text-[10px] font-mono text-slate-300"
+                >
+                  KES 25,000
+                </div>
+              </div>
+
+            </div>
+
+
+            <div class="flex items-center gap-2 p-2 rounded-xl bg-blue-500/10 border border-blue-500/25">
+
+              <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+
+              <div>
+                <div class="text-[10px] font-bold text-blue-400">
+                  Category 1
+                </div>
+
+                <div
+                  id="legend-price-cat1"
+                  class="text-[10px] font-mono text-slate-300"
+                >
+                  KES 5,000
+                </div>
+              </div>
+
+            </div>
+
+
+            <div class="flex items-center gap-2 p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25">
+
+              <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+
+              <div>
+                <div class="text-[10px] font-bold text-emerald-400">
+                  Category 2
+                </div>
+
+                <div
+                  id="legend-price-cat2"
+                  class="text-[10px] font-mono text-slate-300"
+                >
+                  KES 2,500
+                </div>
+              </div>
+
+            </div>
+
+
+            <div class="flex items-center gap-2 p-2 rounded-xl bg-orange-500/10 border border-orange-500/25">
+
+              <span class="w-3 h-3 rounded-full bg-orange-500"></span>
+
+              <div>
+                <div class="text-[10px] font-bold text-orange-400">
+                  Category 3
+                </div>
+
+                <div
+                  id="legend-price-cat3"
+                  class="text-[10px] font-mono text-slate-300"
+                >
+                  KES 1,000
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             MAP FILTER
+        ================================================== -->
+
+        <div class="glass-panel rounded-2xl p-3 border border-slate-800">
+
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+
+            <span class="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+              Map View Filter
+            </span>
+
+            <div class="flex flex-wrap gap-1.5">
+
+              <button
+                type="button"
+                data-stand-filter="all"
+                class="stand-filter-pill px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 text-[10px] font-bold"
+              >
+                All 120 Sections
+              </button>
+
+              <button
+                type="button"
+                data-stand-filter="north"
+                class="stand-filter-pill px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-[10px] font-semibold"
+              >
+                North
+              </button>
+
+              <button
+                type="button"
+                data-stand-filter="south"
+                class="stand-filter-pill px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-[10px] font-semibold"
+              >
+                South
+              </button>
+
+              <button
+                type="button"
+                data-stand-filter="west"
+                class="stand-filter-pill px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-[10px] font-semibold"
+              >
+                West
+              </button>
+
+              <button
+                type="button"
+                data-stand-filter="east"
+                class="stand-filter-pill px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-[10px] font-semibold"
+              >
+                East
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             STADIUM MAP
+             
+             IMPORTANT:
+             The map itself is sourced from the existing
+             GitHub index.html structure.
+
+             tickets.js loads the existing map markup rather
+             than generating a replacement stadium geometry.
+        ================================================== -->
+
+        <div class="stadium-bowl-wrapper relative rounded-2xl p-3 sm:p-4 overflow-hidden border border-slate-800 shadow-2xl select-none">
+
+          <!-- Hover HUD -->
+
+          <div
+            id="stadium-hover-hud"
+            class="mb-2 p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 font-mono"
+          >
+
+            <div class="flex items-center gap-2">
+
+              <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+
+              <span class="text-slate-500">
+                Hover Target:
+              </span>
+
+              <span
+                id="hud-section-name"
+                class="text-white font-bold"
+              >
+                Select a section
+              </span>
+
+              <span
+                id="hud-section-tier"
+                class="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px]"
+              >
+                —
+              </span>
+
+            </div>
+
+            <div class="flex items-center gap-3">
+
+              <span
+                id="hud-section-price"
+                class="text-amber-400 font-bold"
+              >
+                —
+              </span>
+
+              <span
+                id="hud-section-status"
+                class="text-emerald-400 font-medium"
+              >
+                ● Available
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- =================================================
+               EXACT EXISTING MAP HOST
+               
+               The existing index.html map is inserted here
+               without rebuilding the stadium geometry.
+          ================================================== -->
+
+          <div
+            id="stadium-svg-map-wrapper"
+            class="w-full overflow-hidden rounded-xl bg-slate-950/70 border border-slate-800/80"
+          >
+
+            <div
+              id="stadium-map-loading"
+              class="map-loading"
+            >
+
+              <div class="text-center">
+
+                <div class="map-spinner mx-auto mb-4"></div>
+
+                <div class="text-xs font-semibold text-slate-300">
+                  Loading stadium map
+                </div>
+
+                <div class="text-[10px] text-slate-500 mt-1 font-mono">
+                  Preserving the official project map structure…
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- Map footer -->
+
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-3">
+
+            <div class="flex items-center gap-4 text-[10px] text-slate-500">
+
+              <span class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                Available
+              </span>
+
+              <span class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+                Occupied
+              </span>
+
+              <span class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-300 shadow-[0_0_8px_#10b981]"></span>
+                Selected
+              </span>
+
+            </div>
+
+            <div
+              id="map-selection-count"
+              class="font-mono text-[10px] text-slate-500"
+            >
+              0 seats selected
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             SELECTED SEATS
+        ================================================== -->
+
+        <div
+          id="selected-seats-panel"
+          class="glass-panel rounded-2xl p-4 border border-slate-800"
+        >
+
+          <div class="flex items-center justify-between gap-3 mb-3">
+
+            <div>
+
+              <div class="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+                Your Selection
+              </div>
+
+              <div class="font-display font-bold text-white mt-0.5">
+                Selected seats
+              </div>
+
+            </div>
+
+            <span
+              id="selected-seat-count"
+              class="px-2 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-400"
+            >
+              0 seats
+            </span>
+
+          </div>
+
+
+          <div
+            id="selected-seat-list"
+            class="flex flex-wrap gap-2"
+          >
+
+            <div class="text-xs text-slate-500">
+              Your selected seats will appear here.
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           RIGHT: PURCHASE PANEL
+      ====================================================== -->
+
+      <aside
+        id="billing-stack-sidebar"
+        class="xl:col-span-4 space-y-4"
+      >
+
+
+        <!-- =================================================
+             ORDER SUMMARY
+        ================================================== -->
+
+        <div class="glass-panel rounded-2xl border border-slate-800 shadow-xl overflow-hidden">
+
+          <div class="p-4 border-b border-slate-800">
+
+            <div class="flex items-center justify-between">
+
+              <div>
+
+                <div class="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+                  Order Summary
+                </div>
+
+                <h2 class="font-display font-black text-xl text-white mt-1">
+                  Your tickets
+                </h2>
+
+              </div>
+
+              <div
+                id="hold-timer"
+                class="hidden text-right"
+              >
+
+                <div class="text-[9px] uppercase tracking-widest text-slate-500">
+                  Held for
+                </div>
+
+                <div
+                  id="hold-timer-value"
+                  class="font-mono font-bold text-amber-400"
+                >
+                  10:00
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="p-4">
+
+            <!-- Match -->
+
+            <div class="pb-4 mb-4 border-b border-slate-800">
+
+              <div class="text-[9px] uppercase tracking-widest text-slate-500 mb-2">
+                Fixture
+              </div>
+
+              <div
+                id="summary-match"
+                class="font-display font-bold text-white"
+              >
+                Kenya 🇰🇪 vs Senegal 🇸🇳
+              </div>
+
+              <div
+                id="summary-venue"
+                class="text-[11px] text-slate-400 mt-1"
+              >
+                Moi International Sports Centre, Kasarani
+              </div>
+
+              <div
+                id="summary-date"
+                class="text-[10px] text-slate-500 mt-1 font-mono"
+              >
+                Fri, 18 Sep 2026 · 20:00 EAT
+              </div>
+
+            </div>
+
+
+            <!-- Seats -->
+
+            <div>
+
+              <div class="flex items-center justify-between mb-2">
+
+                <span class="text-[9px] uppercase tracking-widest text-slate-500">
+                  Seats
+                </span>
+
+                <span
+                  id="summary-seat-count"
+                  class="text-[10px] font-mono text-slate-500"
+                >
+                  0
+                </span>
+
+              </div>
+
+              <div
+                id="summary-seat-lines"
+                class="space-y-1"
+              >
+
+                <div class="text-xs text-slate-500">
+                  No seats selected.
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <!-- Price -->
+
+            <div class="mt-4">
+
+              <div class="price-row">
+
+                <span class="text-slate-400">
+                  Subtotal
+                </span>
+
+                <span
+                  id="summary-subtotal"
+                  class="font-mono text-slate-200"
+                >
+                  KES 0
+                </span>
+
+              </div>
+
+              <div class="price-row">
+
+                <span class="text-slate-400">
+                  VAT &amp; service levy
+                </span>
+
+                <span
+                  id="summary-vat"
+                  class="font-mono text-slate-200"
+                >
+                  KES 0
+                </span>
+
+              </div>
+
+              <div class="price-row total">
+
+                <span class="text-white">
+                  Total
+                </span>
+
+                <span
+                  id="summary-total"
+                  class="font-mono text-amber-400"
+                >
+                  KES 0
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <button
+              type="button"
+              id="continue-details-btn"
+              disabled
+              class="w-full mt-5 py-3.5 rounded-xl bg-slate-800 text-slate-500 font-display font-black text-sm uppercase tracking-wider cursor-not-allowed transition"
+            >
+              Continue to details
+            </button>
+
+            <p
+              id="selection-hint"
+              class="text-center text-[10px] text-slate-500 mt-2"
+            >
+              Select at least one available seat to continue.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             FAN DETAILS
+        ================================================== -->
+
+        <div
+          id="fan-details-card"
+          class="glass-panel rounded-2xl border border-slate-800 overflow-hidden"
+        >
+
+          <div class="p-4 border-b border-slate-800">
+
+            <div class="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+              Step 3
+            </div>
+
+            <h2 class="font-display font-black text-lg text-white mt-1">
+              Fan details
+            </h2>
+
+          </div>
+
+          <div class="p-4 space-y-3">
+
+            <div>
+
+              <label
+                for="fan-name"
+                class="block text-[10px] uppercase tracking-wider text-slate-400 mb-1.5"
+              >
+                Full name
+              </label>
+
+              <input
+                id="fan-name"
+                type="text"
+                autocomplete="name"
+                placeholder="Enter your full name"
+                class="glass-input w-full rounded-xl px-3 py-2.5 text-xs text-slate-200"
+              >
+
+            </div>
+
+
+            <div>
+
+              <label
+                for="fan-email"
+                class="block text-[10px] uppercase tracking-wider text-slate-400 mb-1.5"
+              >
+                Email address
+              </label>
+
+              <input
+                id="fan-email"
+                type="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                class="glass-input w-full rounded-xl px-3 py-2.5 text-xs text-slate-200"
+              >
+
+            </div>
+
+
+            <div>
+
+              <label
+                for="fan-phone"
+                class="block text-[10px] uppercase tracking-wider text-slate-400 mb-1.5"
+              >
+                Mobile number
+              </label>
+
+              <input
+                id="fan-phone"
+                type="tel"
+                autocomplete="tel"
+                placeholder="+254 7XX XXX XXX"
+                class="glass-input w-full rounded-xl px-3 py-2.5 text-xs text-slate-200"
+              >
+
+            </div>
+
+
+            <div>
+
+              <label
+                for="yalla-id"
+                class="block text-[10px] uppercase tracking-wider text-slate-400 mb-1.5"
+              >
+                YALLA Fan ID
+              </label>
+
+              <div class="flex gap-2">
+
+                <input
+                  id="yalla-id"
+                  type="text"
+                  placeholder="YALLA-KE-2026-XXXX"
+                  class="glass-input flex-1 rounded-xl px-3 py-2.5 text-xs font-mono text-amber-400 uppercase"
+                >
+
+                <button
+                  type="button"
+                  id="verify-yalla-btn"
+                  class="px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 text-[10px] font-bold transition"
+                >
+                  Verify
+                </button>
+
+              </div>
+
+              <div
+                id="yalla-status"
+                class="hidden mt-2 p-2.5 rounded-xl text-[10px]"
+              ></div>
+
+            </div>
+
+
+            <button
+              type="button"
+              id="continue-payment-btn"
+              disabled
+              class="w-full py-3 rounded-xl bg-slate-800 text-slate-500 font-bold text-xs uppercase tracking-wider cursor-not-allowed transition"
+            >
+              Continue to payment
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             PAYMENT
+        ================================================== -->
+
+        <div
+          id="payment-card"
+          class="glass-panel rounded-2xl border border-slate-800 overflow-hidden"
+        >
+
+          <div class="p-4 border-b border-slate-800">
+
+            <div class="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+              Step 4
+            </div>
+
+            <h2 class="font-display font-black text-lg text-white mt-1">
+              Payment
+            </h2>
+
+          </div>
+
+
+          <div class="p-4">
+
+            <div class="grid grid-cols-2 gap-2 mb-4">
+
+              <button
+                type="button"
+                class="payment-option active rounded-xl p-3 text-left"
+                data-payment="mpesa"
+              >
+
+                <div class="text-xs font-bold text-white">
+                  M-Pesa
+                </div>
+
+                <div class="text-[9px] text-slate-500 mt-1">
+                  Mobile payment
+                </div>
+
+              </button>
+
+
+              <button
+                type="button"
+                class="payment-option rounded-xl p-3 text-left"
+                data-payment="card"
+              >
+
+                <div class="text-xs font-bold text-white">
+                  Card
+                </div>
+
+                <div class="text-[9px] text-slate-500 mt-1">
+                  Visa / Mastercard
+                </div>
+
+              </button>
+
+            </div>
+
+
+            <div id="mpesa-fields">
+
+              <label
+                for="payment-phone"
+                class="block text-[10px] uppercase tracking-wider text-slate-400 mb-1.5"
+              >
+                M-Pesa number
+              </label>
+
+              <input
+                id="payment-phone"
+                type="tel"
+                placeholder="+254 7XX XXX XXX"
+                class="glass-input w-full rounded-xl px-3 py-2.5 text-xs font-mono text-slate-200"
+              >
+
+            </div>
+
+
+            <div
+              id="card-fields"
+              class="hidden space-y-3"
+            >
+
+              <div>
+
+                <label class="block text-[10px] uppercase tracking-wider text-slate-400 mb-1.5">
+                  Card number
+                </label>
+
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="4242 4242 4242 4242"
+                  class="glass-input w-full rounded-xl px-3 py-2.5 text-xs font-mono text-slate-200"
+                >
+
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+
+                <input
+                  type="text"
+                  placeholder="MM / YY"
+                  class="glass-input w-full rounded-xl px-3 py-2.5 text-xs font-mono text-slate-200"
+                >
+
+                <input
+                  type="text"
+                  placeholder="CVC"
+                  class="glass-input w-full rounded-xl px-3 py-2.5 text-xs font-mono text-slate-200"
+                >
+
+              </div>
+
+            </div>
+
+
+            <button
+              type="button"
+              id="pay-now-btn"
+              disabled
+              class="w-full mt-4 py-3.5 rounded-xl bg-slate-800 text-slate-500 font-display font-black text-sm uppercase tracking-wider cursor-not-allowed transition"
+            >
+              Pay KES 0
+            </button>
+
+
+            <div class="flex items-center justify-center gap-2 mt-3 text-[9px] text-slate-600">
+
+              <span>🔒 Secure checkout</span>
+              <span>•</span>
+              <span>CAF PAMOJA 2026</span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             TRUST PANEL
+        ================================================== -->
+
+        <div class="rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
+
+          <div class="grid grid-cols-3 gap-3 text-center">
+
+            <div>
+              <div class="text-lg">🔒</div>
+              <div class="text-[9px] text-slate-500 mt-1">
+                Secure
+              </div>
+            </div>
+
+            <div>
+              <div class="text-lg">🎟️</div>
+              <div class="text-[9px] text-slate-500 mt-1">
+                Digital ticket
+              </div>
+            </div>
+
+            <div>
+              <div class="text-lg">📱</div>
+              <div class="text-[9px] text-slate-500 mt-1">
+                Mobile ready
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </aside>
+
+    </div>
+
+  </main>
+
+
+  <!-- =========================================================
+       SUCCESS MODAL
+  ========================================================= -->
+
+  <div
+    id="success-modal"
+    class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/75 backdrop-blur-sm"
+  >
+
+    <div class="glass-panel w-full max-w-lg rounded-3xl border border-emerald-500/30 shadow-2xl overflow-hidden">
+
+      <div class="p-6 sm:p-8 text-center">
+
+        <div
+          class="mx-auto w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center text-3xl"
+        >
+          ✓
+        </div>
+
+        <div class="text-[10px] uppercase tracking-[.2em] text-emerald-400 font-bold mt-5">
+          Payment successful
+        </div>
+
+        <h2 class="font-display font-black text-3xl text-white mt-2">
+          Ticket confirmed
+        </h2>
+
+        <p class="text-sm text-slate-400 mt-2">
+          Your AFCON PAMOJA 2026 ticket order has been confirmed.
+        </p>
+
+
+        <div class="mt-6 p-4 rounded-2xl bg-slate-950/80 border border-slate-800 text-left">
+
+          <div class="grid grid-cols-2 gap-4">
+
+            <div>
+              <div class="text-[9px] uppercase tracking-wider text-slate-500">
+                Booking reference
+              </div>
+
+              <div
+                id="success-reference"
+                class="font-mono font-bold text-amber-400 mt-1"
+              >
+                PAMOJA-000000
+              </div>
+            </div>
+
+            <div>
+              <div class="text-[9px] uppercase tracking-wider text-slate-500">
+                Total paid
+              </div>
+
+              <div
+                id="success-total"
+                class="font-mono font-bold text-white mt-1"
+              >
+                KES 0
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="flex flex-col sm:flex-row gap-2 mt-6">
+
+          <button
+            type="button"
+            id="close-success-btn"
+            class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition"
+          >
+            Done
+          </button>
+
+          <button
+            type="button"
+            onclick="window.print()"
+            class="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition"
+          >
+            Print ticket
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+       FOOTER
+  ========================================================= -->
+
+  <footer class="site-shell-footer">
+
+    <div class="site-shell-footer-inner">
+
+      <div>
+        <strong>AFCON PAMOJA 2026</strong>
+        <span>East Africa's celebration of African football.</span>
+      </div>
+
+      <div>
+        <span>Official tournament ticketing experience</span>
+      </div>
+
+    </div>
+
+  </footer>
+
+
+  <!-- =========================================================
+       EXISTING PROJECT DATA / LOGIC
+  ========================================================= -->
+
+  <script src="ticketing-data.js"></script>
+  <script src="tickets.js"></script>
+
+</body>
+</html>
