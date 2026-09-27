@@ -1,183 +1,101 @@
 /**
- * AFCON PAMOJA
- * Match-specific ticket selection
+ * AFCON PAMOJA 2026
+ * Ticket selection engine
  *
- * Flow:
+ * 120 SVG sections come from old-index.html.
  *
- * index.html
- *     ↓
- * tickets.html?match=m1
- *     ↓
- * venue configuration
- *     ↓
- * individual seat selection
- *     ↓
- * ticket summary
- *     ↓
- * checkout review
- *
- * This is currently a front-end ticketing experience.
- * Actual payment processing / server-side inventory locking
- * should be connected before production use.
+ * A selected section represents a seating section.
+ * Quantity represents how many tickets are requested
+ * inside that section.
  */
 
 (() => {
+
   'use strict';
 
 
-  /* ==========================================================
-     Data
-  ========================================================== */
+  /* =========================================================
+     INITIAL STATE
+  ========================================================= */
 
-  const data = window.TICKETING_DATA;
-
-  if (!data) {
-    console.error(
-      'TICKETING_DATA was not loaded.'
-    );
-
-    return;
-  }
-
-
-  /* ==========================================================
-     URL
-  ========================================================== */
+  const data =
+    window.TICKETING_DATA;
 
   const params =
-    new URLSearchParams(window.location.search);
+    new URLSearchParams(
+      window.location.search
+    );
 
   const matchId =
     params.get('match');
 
-
   const match =
     window.getMatch(matchId);
-
 
   const venue =
     window.getVenue(match);
 
 
-  /* ==========================================================
-     DOM
-  ========================================================== */
+  const state = {
 
-  const els = {
+    /*
+     * Each entry is a section allocation.
+     *
+     * {
+     *   sectionId: 'SECTION-42',
+     *   tier: 'cat1',
+     *   price: 3000,
+     *   quantity: 4,
+     *   path: SVGPathElement
+     * }
+     */
+    allocations: [],
 
-    matchStage:
-      document.getElementById('match-stage'),
+    /*
+     * One Fan ID per ticket.
+     */
+    fanIds: [],
 
-    matchTitle:
-      document.getElementById('match-title'),
+    /*
+     * Current checkout stage.
+     */
+    step: 1,
 
-    matchMeta:
-      document.getElementById('match-meta'),
+    svgLoaded: false
 
-    venueName:
-      document.getElementById('venue-name'),
-
-    venueCity:
-      document.getElementById('venue-city'),
-
-    venueDescription:
-      document.getElementById('venue-description'),
-
-    venueCapacity:
-      document.getElementById('venue-capacity'),
-
-    stadium:
-      document.getElementById('stadium'),
-
-    selectedSeatsPreview:
-      document.getElementById('selected-seats-preview'),
-
-    selectedSeatChips:
-      document.getElementById('selected-seat-chips'),
-
-    selectedCount:
-      document.getElementById('selected-count'),
-
-    summaryTeams:
-      document.getElementById('summary-teams'),
-
-    summaryDate:
-      document.getElementById('summary-date'),
-
-    summaryVenue:
-      document.getElementById('summary-venue'),
-
-    ticketLines:
-      document.getElementById('ticket-lines'),
-
-    subtotal:
-      document.getElementById('subtotal'),
-
-    serviceFee:
-      document.getElementById('service-fee'),
-
-    total:
-      document.getElementById('total'),
-
-    checkoutButton:
-      document.getElementById('checkout-button'),
-
-    categoryList:
-      document.getElementById('category-list'),
-
-    checkoutModal:
-      document.getElementById('checkout-modal'),
-
-    closeCheckout:
-      document.getElementById('close-checkout'),
-
-    cancelCheckout:
-      document.getElementById('cancel-checkout'),
-
-    confirmCheckout:
-      document.getElementById('confirm-checkout'),
-
-    checkoutReview:
-      document.getElementById('checkout-review'),
-
-    checkoutTotal:
-      document.getElementById('checkout-total'),
-
-    invalidMatch:
-      document.getElementById('invalid-match')
   };
 
 
-  /* ==========================================================
-     Invalid match
-  ========================================================== */
+  /* =========================================================
+     DOM
+  ========================================================= */
+
+  const $ = id =>
+    document.getElementById(id);
+
+
+  /* =========================================================
+     VALIDATION
+  ========================================================= */
 
   if (!match || !venue) {
 
-    els.invalidMatch.classList.remove('hidden');
+    const error =
+      $('invalid-match');
+
+    if (error) {
+      error.classList.remove(
+        'hidden'
+      );
+    }
 
     return;
   }
 
 
-  /* ==========================================================
-     State
-  ========================================================== */
-
-  const state = {
-
-    selectedSeats: new Map(),
-
-    unavailableSeats: new Set(),
-
-    seatRegistry: new Map()
-
-  };
-
-
-  /* ==========================================================
-     Utility functions
-  ========================================================== */
+  /* =========================================================
+     GENERAL HELPERS
+  ========================================================= */
 
   function money(value) {
 
@@ -186,9 +104,53 @@
   }
 
 
+  function totalTickets() {
+
+    return state.allocations.reduce(
+      (sum, allocation) =>
+        sum + allocation.quantity,
+      0
+    );
+
+  }
+
+
+  function totalPrice() {
+
+    return state.allocations.reduce(
+      (sum, allocation) =>
+        sum +
+        allocation.quantity *
+        allocation.price,
+      0
+    );
+
+  }
+
+
+  function serviceFee() {
+
+    return Math.round(
+      totalPrice() *
+      data.serviceLevyRate
+    );
+
+  }
+
+
+  function grandTotal() {
+
+    return (
+      totalPrice() +
+      serviceFee()
+    );
+
+  }
+
+
   function escapeHtml(value) {
 
-    return String(value ?? '')
+    return String(value || '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
@@ -198,623 +160,642 @@
   }
 
 
-  function teamName(value) {
+  /* =========================================================
+     MATCH HEADER
+  ========================================================= */
 
-    return String(value || '')
-      .replace(
-        /(\p{Extended_Pictographic}.*)$/u,
-        ''
-      )
-      .trim();
+  function renderMatch() {
 
-  }
+    const title =
+      $('match-title');
 
+    const stage =
+      $('match-stage');
 
-  function seatKey(
-    standKey,
-    sectionNumber,
-    rowNumber,
-    seatNumber
-  ) {
+    const meta =
+      $('match-meta');
 
-    return [
-      standKey,
-      sectionNumber,
-      rowNumber,
-      seatNumber
-    ].join('-');
+    const venueName =
+      $('venue-name');
 
-  }
+    const venueCity =
+      $('venue-city');
 
+    const capacity =
+      $('venue-capacity');
 
-  function seatLabel(
-    stand,
-    sectionNumber,
-    rowNumber,
-    seatNumber
-  ) {
-
-    const section =
-      String(sectionNumber).padStart(2, '0');
-
-    const row =
-      String.fromCharCode(
-        64 + rowNumber
-      );
-
-    return `${stand.key.toUpperCase()}-${section}-${row}-${seatNumber}`;
-
-  }
+    const description =
+      $('venue-description');
 
 
-  function deterministicOccupied(
-    standIndex,
-    sectionIndex,
-    rowIndex,
-    seatIndex
-  ) {
+    if (title) {
 
-    /*
-     * Deterministic front-end availability simulation.
-     *
-     * This means refreshes do not randomly change the map.
-     *
-     * Production inventory should come from a backend.
-     */
+      title.textContent =
+        `${match.home} vs ${match.away}`;
 
-    const score =
-      (
-        (standIndex + 1) * 17 +
-        (sectionIndex + 1) * 11 +
-        (rowIndex + 1) * 7 +
-        (seatIndex + 1) * 5
-      ) % 97;
-
-
-    /*
-     * Different availability pressure per fixture.
-     */
-
-    let threshold = 8;
-
-    if (match.id === 'm1') {
-      threshold = 10;
     }
 
-    if (match.id === 'm2') {
-      threshold = 28;
+
+    if (stage) {
+
+      stage.textContent =
+        match.stage;
+
     }
 
-    if (match.id === 'm3') {
-      threshold = 17;
+
+    if (meta) {
+
+      meta.textContent =
+        `${match.date} · ${match.time}`;
+
     }
 
-    return score < threshold;
 
-  }
+    if (venueName) {
 
+      venueName.textContent =
+        venue.name;
 
-  function categoryClass(stand) {
-
-    if (
-      stand.tier.toLowerCase().includes('vip') ||
-      stand.tier.toLowerCase().includes('category 1')
-    ) {
-      return 'vip';
     }
 
-    return '';
+
+    if (venueCity) {
+
+      venueCity.textContent =
+        venue.city;
+
+    }
+
+
+    if (capacity) {
+
+      capacity.textContent =
+        `${venue.capacity.toLocaleString()} capacity`;
+
+    }
+
+
+    if (description) {
+
+      description.textContent =
+        venue.description;
+
+    }
 
   }
 
 
-  /* ==========================================================
-     Match header
-  ========================================================== */
+  /* =========================================================
+     EXACT MAP FROM old-index.html
+  ========================================================= */
 
-  function renderMatchHeader() {
+  async function loadOriginalMap() {
 
-    document.title =
-      `${teamName(match.home)} vs ${teamName(match.away)} | AFCON PAMOJA 2026`;
+    const wrapper =
+      $('stadium-svg-map-wrapper');
 
-
-    els.matchStage.textContent =
-      match.stage;
-
-
-    els.matchTitle.textContent =
-      `${match.home} vs ${match.away}`;
-
-
-    els.matchMeta.innerHTML = `
-      <span>${escapeHtml(match.date)}</span>
-      <span>${escapeHtml(match.time)}</span>
-    `;
-
-
-    els.venueName.textContent =
-      venue.name;
-
-
-    els.venueCity.textContent =
-      venue.city;
-
-
-    els.venueDescription.textContent =
-      venue.description;
-
-
-    els.venueCapacity.textContent =
-      `${Number(venue.capacity).toLocaleString()} capacity`;
-
-
-    els.summaryTeams.textContent =
-      `${teamName(match.home)} vs ${teamName(match.away)}`;
-
-
-    els.summaryDate.textContent =
-      `${match.date} · ${match.time}`;
-
-
-    els.summaryVenue.textContent =
-      venue.name;
-
-  }
-
-
-  /* ==========================================================
-     Category pricing
-  ========================================================== */
-
-  function renderCategoryPricing() {
-
-    els.categoryList.innerHTML =
-      venue.stands.map(stand => {
-
-        return `
-          <div class="category-row">
-
-            <div class="category-info">
-
-              <span class="category-dot"></span>
-
-              <span class="category-name">
-                ${escapeHtml(stand.name)}
-                ·
-                ${escapeHtml(stand.tier)}
-              </span>
-
-            </div>
-
-            <span class="category-price">
-              ${money(stand.price)}
-            </span>
-
-          </div>
-        `;
-
-      }).join('');
-
-  }
-
-
-  /* ==========================================================
-     Stadium
-  ========================================================== */
-
-  function renderStadium() {
-
-    els.stadium.dataset.layout =
-      venue.layout;
-
-
-    state.seatRegistry.clear();
-    state.unavailableSeats.clear();
-
-
-    const standElements = {
-
-      north:
-        document.getElementById('stand-north'),
-
-      east:
-        document.getElementById('stand-east'),
-
-      south:
-        document.getElementById('stand-south'),
-
-      west:
-        document.getElementById('stand-west')
-
-    };
-
-
-    venue.stands.forEach(
-      (stand, standIndex) => {
-
-        const container =
-          standElements[stand.key];
-
-
-        if (!container) {
-          return;
-        }
-
-
-        container.innerHTML = '';
-
-
-        const sectionWidth =
-          Math.max(
-            1,
-            Math.min(
-              8,
-              Math.ceil(
-                stand.sections / 2
-              )
-            )
-          );
-
-
-        for (
-          let sectionIndex = 0;
-          sectionIndex < stand.sections;
-          sectionIndex++
-        ) {
-
-          const section =
-            document.createElement('div');
-
-
-          section.className =
-            'stand-section';
-
-
-          section.style.setProperty(
-            '--section-columns',
-            Math.min(
-              stand.seatsPerRow,
-              20
-            )
-          );
-
-
-          section.style.gridTemplateRows =
-            `repeat(${stand.rows}, minmax(0, 1fr))`;
-
-
-          /*
-           * On north/south, divide sections across
-           * the available width.
-           *
-           * On east/west, the same sections are
-           * visually stacked by the browser.
-           */
-
-          if (
-            stand.key === 'north' ||
-            stand.key === 'south'
-          ) {
-
-            section.style.width =
-              `${100 / sectionWidth}%`;
-
-          } else {
-
-            section.style.width =
-              `${100 / Math.min(stand.sections, 8)}%`;
-
-          }
-
-
-          const label =
-            document.createElement('span');
-
-
-          label.className =
-            'section-label';
-
-
-          label.textContent =
-            `${stand.key.toUpperCase()} ${String(sectionIndex + 1).padStart(2, '0')}`;
-
-
-          section.appendChild(label);
-
-
-          /*
-           * Generate actual individual seats.
-           */
-
-          for (
-            let rowIndex = 0;
-            rowIndex < stand.rows;
-            rowIndex++
-          ) {
-
-            for (
-              let seatIndex = 0;
-              seatIndex < stand.seatsPerRow;
-              seatIndex++
-            ) {
-
-              const seat =
-                document.createElement('button');
-
-
-              const key =
-                seatKey(
-                  stand.key,
-                  sectionIndex + 1,
-                  rowIndex + 1,
-                  seatIndex + 1
-                );
-
-
-              const labelValue =
-                seatLabel(
-                  stand,
-                  sectionIndex + 1,
-                  rowIndex + 1,
-                  seatIndex + 1
-                );
-
-
-              const occupied =
-                deterministicOccupied(
-                  standIndex,
-                  sectionIndex,
-                  rowIndex,
-                  seatIndex
-                );
-
-
-              seat.type = 'button';
-
-              seat.className = 'seat';
-
-              seat.dataset.key = key;
-
-              seat.dataset.stand =
-                stand.key;
-
-              seat.dataset.section =
-                sectionIndex + 1;
-
-              seat.dataset.row =
-                rowIndex + 1;
-
-              seat.dataset.number =
-                seatIndex + 1;
-
-              seat.dataset.category =
-                stand.tier;
-
-              seat.dataset.price =
-                stand.price;
-
-              seat.setAttribute(
-                'aria-label',
-                `${labelValue}, ${stand.tier}, ${money(stand.price)}`
-              );
-
-
-              if (
-                categoryClass(stand)
-              ) {
-
-                seat.classList.add('vip');
-
-              }
-
-
-              if (occupied) {
-
-                seat.disabled = true;
-
-                seat.classList.add('occupied');
-
-                state.unavailableSeats.add(key);
-
-              }
-
-
-              seat.addEventListener(
-                'click',
-                () => toggleSeat(
-                  seat,
-                  stand,
-                  labelValue
-                )
-              );
-
-
-              state.seatRegistry.set(
-                key,
-                {
-                  key,
-                  label: labelValue,
-                  stand: stand.name,
-                  tier: stand.tier,
-                  price: Number(stand.price),
-                  element: seat
-                }
-              );
-
-
-              section.appendChild(seat);
-
-            }
-
-          }
-
-
-          container.appendChild(section);
-
-        }
-
-      }
-    );
-
-  }
-
-
-  /* ==========================================================
-     Seat selection
-  ========================================================== */
-
-  function toggleSeat(
-    seatElement,
-    stand,
-    label
-  ) {
-
-    const key =
-      seatElement.dataset.key;
-
-
-    if (
-      state.unavailableSeats.has(key)
-    ) {
-
+    if (!wrapper) {
       return;
     }
 
 
-    if (
-      state.selectedSeats.has(key)
-    ) {
+    try {
 
-      state.selectedSeats.delete(key);
+      const response =
+        await fetch(
+          'old-index.html',
+          {
+            cache: 'no-cache'
+          }
+        );
 
-      seatElement.classList.remove('selected');
 
-    } else {
+      if (!response.ok) {
+
+        throw new Error(
+          `Could not load old-index.html: ${response.status}`
+        );
+
+      }
+
+
+      const source =
+        await response.text();
+
+
+      const parser =
+        new DOMParser();
+
+
+      const sourceDocument =
+        parser.parseFromString(
+          source,
+          'text/html'
+        );
+
+
+      const originalSvg =
+        sourceDocument.querySelector(
+          '#stadium-interactive-svg'
+        );
+
+
+      if (!originalSvg) {
+
+        throw new Error(
+          'The stadium SVG was not found in old-index.html.'
+        );
+
+      }
+
 
       /*
-       * Keep the cart deliberately bounded.
-       * This avoids accidental massive selections while
-       * still allowing normal group purchases.
+       * IMPORTANT:
+       *
+       * This clones the actual 120-section map.
+       * No new geometry is generated.
        */
 
+      const svg =
+        originalSvg.cloneNode(true);
+
+
+      svg.id =
+        'stadium-interactive-svg';
+
+
+      wrapper.innerHTML = '';
+
+      wrapper.appendChild(svg);
+
+
+      state.svgLoaded =
+        true;
+
+
+      initialise120Sections(
+        svg
+      );
+
+
+    } catch (error) {
+
+      console.error(error);
+
+      wrapper.innerHTML = `
+        <div class="map-error-state">
+
+          <strong>
+            Stadium map unavailable
+          </strong>
+
+          <span>
+            Please refresh and try again.
+          </span>
+
+        </div>
+      `;
+
+    }
+
+  }
+
+
+  /* =========================================================
+     120 SECTION MAP
+  ========================================================= */
+
+  function initialise120Sections(
+    svg
+  ) {
+
+    /*
+     * The original map is the authority.
+     *
+     * Every selectable path becomes one section.
+     *
+     * We deliberately do not recreate its coordinates,
+     * shapes, dimensions or layout.
+     */
+
+    const paths =
+      Array.from(
+        svg.querySelectorAll(
+          'path'
+        )
+      );
+
+
+    let sectionNumber = 0;
+
+
+    paths.forEach(path => {
+
+      /*
+       * Ignore decorative/background paths.
+       */
       if (
-        state.selectedSeats.size >= 8
+        path.id === 'Layer_1' ||
+        path.closest('#Layer_1')
+      ) {
+        return;
+      }
+
+
+      /*
+       * Only bind meaningful map paths.
+       */
+      sectionNumber++;
+
+
+      const sectionId =
+        `SECTION-${String(
+          sectionNumber
+        ).padStart(3, '0')}`;
+
+
+      const tier =
+        detectTier(path);
+
+
+      const price =
+        window.getTicketPrice(
+          match,
+          tier
+        );
+
+
+      path.dataset.sectionId =
+        sectionId;
+
+
+      path.dataset.ticketTier =
+        tier;
+
+
+      path.dataset.ticketPrice =
+        price;
+
+
+      path.setAttribute(
+        'tabindex',
+        '0'
+      );
+
+
+      path.setAttribute(
+        'role',
+        'button'
+      );
+
+
+      path.setAttribute(
+        'aria-label',
+        `${sectionId}, ${tier.toUpperCase()}, ${money(price)} per ticket`
+      );
+
+
+      path.addEventListener(
+        'click',
+        event => {
+
+          event.preventDefault();
+
+          toggleSection(
+            path
+          );
+
+        }
+      );
+
+
+      path.addEventListener(
+        'keydown',
+        event => {
+
+          if (
+            event.key === 'Enter' ||
+            event.key === ' '
+          ) {
+
+            event.preventDefault();
+
+            toggleSection(
+              path
+            );
+
+          }
+
+        }
+      );
+
+    });
+
+
+    /*
+     * Safety check.
+     *
+     * Your current map should resolve to 120 selectable
+     * sections. If the number changes, we want to know.
+     */
+
+    console.info(
+      `PAMOJA ticket map initialised: ${sectionNumber} sections`
+    );
+
+
+    updateMapSelectionState();
+
+  }
+
+
+  /* =========================================================
+     CATEGORY DETECTION
+  ========================================================= */
+
+  function detectTier(path) {
+
+    const id =
+      String(
+        path.id || ''
+      ).toLowerCase();
+
+
+    const parent =
+      path.parentElement
+        ? String(
+            path.parentElement.id || ''
+          ).toLowerCase()
+        : '';
+
+
+    const context =
+      `${id} ${parent}`;
+
+
+    if (
+      context.includes('vip') ||
+      context.includes('vvip')
+    ) {
+
+      return 'vvip';
+
+    }
+
+
+    if (
+      context.includes('cat1') ||
+      context.includes('category1')
+    ) {
+
+      return 'cat1';
+
+    }
+
+
+    if (
+      context.includes('cat2') ||
+      context.includes('category2')
+    ) {
+
+      return 'cat2';
+
+    }
+
+
+    /*
+     * Default category.
+     *
+     * The exact SVG remains authoritative for geometry.
+     * Pricing is handled separately here.
+     */
+
+    return 'cat3';
+
+  }
+
+
+  /* =========================================================
+     SECTION SELECTION
+  ========================================================= */
+
+  function toggleSection(path) {
+
+    const sectionId =
+      path.dataset.sectionId;
+
+
+    let allocation =
+      state.allocations.find(
+        item =>
+          item.sectionId ===
+          sectionId
+      );
+
+
+    /*
+     * Section already selected:
+     *
+     * Increase quantity rather than creating
+     * another "seat".
+     */
+
+    if (allocation) {
+
+      if (
+        totalTickets() >=
+        data.rules.maximumTicketsPerOrder
       ) {
 
-        window.alert(
-          'You can select up to 8 seats per order.'
+        notify(
+          `You can select up to ${data.rules.maximumTicketsPerOrder} tickets per match.`
         );
 
         return;
       }
 
 
-      const registrySeat =
-        state.seatRegistry.get(key);
+      allocation.quantity++;
+
+      updateAll();
+
+      return;
+    }
 
 
-      state.selectedSeats.set(
-        key,
-        registrySeat
+    /*
+     * New section.
+     */
+
+    if (
+      totalTickets() >=
+      data.rules.maximumTicketsPerOrder
+    ) {
+
+      notify(
+        `You can select up to ${data.rules.maximumTicketsPerOrder} tickets per match.`
+      );
+
+      return;
+    }
+
+
+    allocation = {
+
+      sectionId,
+
+      tier:
+        path.dataset.ticketTier,
+
+      price:
+        Number(
+          path.dataset.ticketPrice
+        ),
+
+      quantity: 1,
+
+      path
+
+    };
+
+
+    state.allocations.push(
+      allocation
+    );
+
+
+    updateAll();
+
+  }
+
+
+  /* =========================================================
+     CHANGE QUANTITY
+  ========================================================= */
+
+  function increaseSection(
+    sectionId
+  ) {
+
+    if (
+      totalTickets() >=
+      data.rules.maximumTicketsPerOrder
+    ) {
+
+      notify(
+        `Maximum ${data.rules.maximumTicketsPerOrder} tickets per match.`
+      );
+
+      return;
+    }
+
+
+    const allocation =
+      state.allocations.find(
+        item =>
+          item.sectionId ===
+          sectionId
       );
 
 
-      seatElement.classList.add(
-        'selected'
+    if (!allocation) {
+      return;
+    }
+
+
+    allocation.quantity++;
+
+    updateAll();
+
+  }
+
+
+  function decreaseSection(
+    sectionId
+  ) {
+
+    const index =
+      state.allocations.findIndex(
+        item =>
+          item.sectionId ===
+          sectionId
+      );
+
+
+    if (index === -1) {
+      return;
+    }
+
+
+    const allocation =
+      state.allocations[index];
+
+
+    allocation.quantity--;
+
+
+    if (
+      allocation.quantity <= 0
+    ) {
+
+      state.allocations.splice(
+        index,
+        1
       );
 
     }
 
 
-    updateSummary();
+    updateAll();
 
   }
 
 
-  /* ==========================================================
-     Summary
-  ========================================================== */
+  /* =========================================================
+     REMOVE SECTION
+  ========================================================= */
 
-  function calculateTotals() {
+  function removeSection(
+    sectionId
+  ) {
 
-    const selected =
-      Array.from(
-        state.selectedSeats.values()
+    state.allocations =
+      state.allocations.filter(
+        item =>
+          item.sectionId !==
+          sectionId
       );
 
 
-    const subtotal =
-      selected.reduce(
-        (sum, seat) =>
-          sum + Number(seat.price),
-        0
-      );
-
-
-    const serviceFee =
-      Math.round(
-        subtotal * Number(data.serviceLevyRate || 0)
-      );
-
-
-    const total =
-      subtotal + serviceFee;
-
-
-    return {
-      selected,
-      subtotal,
-      serviceFee,
-      total
-    };
+    updateAll();
 
   }
 
 
-  function updateSummary() {
+  /* =========================================================
+     FAN ID ASSIGNMENT
+  ========================================================= */
 
-    const {
-      selected,
-      subtotal,
-      serviceFee,
-      total
-    } = calculateTotals();
+  function renderFanIdAssignments() {
 
+    const container =
+      $('fan-id-assignments');
 
-    els.selectedCount.textContent =
-      selected.length;
-
-
-    els.subtotal.textContent =
-      money(subtotal);
+    if (!container) {
+      return;
+    }
 
 
-    els.serviceFee.textContent =
-      money(serviceFee);
+    const count =
+      totalTickets();
 
 
-    els.total.textContent =
-      money(total);
+    if (!count) {
 
-
-    els.checkoutButton.disabled =
-      selected.length === 0;
-
-
-    renderTicketLines(selected);
-
-    renderSelectedChips(selected);
-
-  }
-
-
-  function renderTicketLines(selected) {
-
-    if (!selected.length) {
-
-      els.ticketLines.innerHTML = `
-        <div class="empty-summary">
-          Select a seat to add a ticket.
+      container.innerHTML = `
+        <div class="fan-id-empty">
+          Select tickets to assign Fan IDs.
         </div>
       `;
 
@@ -822,345 +803,872 @@
     }
 
 
-    els.ticketLines.innerHTML =
-      selected.map(seat => {
+    /*
+     * Preserve IDs already entered.
+     */
 
-        return `
-          <div class="ticket-line">
+    while (
+      state.fanIds.length <
+      count
+    ) {
 
-            <div class="ticket-line-main">
+      state.fanIds.push('');
 
-              <div class="ticket-line-seat">
-                ${escapeHtml(seat.label)}
+    }
+
+
+    if (
+      state.fanIds.length >
+      count
+    ) {
+
+      state.fanIds.length =
+        count;
+
+    }
+
+
+    let ticketNumber = 0;
+
+
+    container.innerHTML =
+      state.allocations
+        .flatMap(
+          allocation =>
+            Array.from(
+              {
+                length:
+                  allocation.quantity
+              },
+              () => allocation
+            )
+        )
+        .map(
+          allocation => {
+
+            ticketNumber++;
+
+
+            const index =
+              ticketNumber - 1;
+
+
+            return `
+              <div
+                class="fan-ticket-row"
+                data-ticket-index="${index}"
+              >
+
+                <div class="fan-ticket-number">
+                  <span>
+                    Ticket ${ticketNumber}
+                  </span>
+
+                  <strong>
+                    ${escapeHtml(
+                      allocation.sectionId
+                    )}
+                  </strong>
+
+                  <small>
+                    ${allocation.tier.toUpperCase()}
+                    ·
+                    ${money(allocation.price)}
+                  </small>
+                </div>
+
+
+                <div class="fan-id-field">
+
+                  <label>
+                    Fan ID
+                  </label>
+
+                  <input
+                    type="text"
+                    class="fan-id-input"
+                    data-fan-index="${index}"
+                    value="${escapeHtml(
+                      state.fanIds[index]
+                    )}"
+                    placeholder="Enter Fan ID"
+                    autocomplete="off"
+                    required
+                  />
+
+                </div>
+
               </div>
+            `;
 
-              <div class="ticket-line-category">
-                ${escapeHtml(seat.tier)}
-              </div>
+          }
+        )
+        .join('');
 
-            </div>
 
-            <div class="ticket-line-price">
-              ${money(seat.price)}
-            </div>
+    container
+      .querySelectorAll(
+        '.fan-id-input'
+      )
+      .forEach(input => {
 
-          </div>
-        `;
+        input.addEventListener(
+          'input',
+          event => {
 
-      }).join('');
+            const index =
+              Number(
+                event.target.dataset.fanIndex
+              );
+
+
+            state.fanIds[index] =
+              event.target.value
+                .trim()
+                .toUpperCase();
+
+          }
+        );
+
+      });
 
   }
 
 
-  function renderSelectedChips(selected) {
+  /* =========================================================
+     FAN ID VALIDATION
+  ========================================================= */
 
-    if (!selected.length) {
+  function validateFanIds() {
 
-      els.selectedSeatsPreview.classList.add(
+    const count =
+      totalTickets();
+
+
+    if (!count) {
+
+      notify(
+        'Select at least one ticket.'
+      );
+
+      return false;
+
+    }
+
+
+    const ids =
+      state.fanIds
+        .slice(0, count)
+        .map(
+          id =>
+            String(id)
+              .trim()
+              .toUpperCase()
+        );
+
+
+    if (
+      ids.some(
+        id => !id
+      )
+    ) {
+
+      notify(
+        'Every ticket must have a Fan ID.'
+      );
+
+      return false;
+
+    }
+
+
+    /*
+     * Same Fan ID cannot appear twice
+     * for the same match.
+     */
+
+    const unique =
+      new Set(ids);
+
+
+    if (
+      unique.size !==
+      ids.length
+    ) {
+
+      notify(
+        'Each ticket must use a different Fan ID for this match.'
+      );
+
+      return false;
+
+    }
+
+
+    state.fanIds =
+      ids;
+
+
+    return true;
+
+  }
+
+
+  /* =========================================================
+     ORDER LINES
+  ========================================================= */
+
+  function buildOrderLines() {
+
+    let ticketNumber = 0;
+
+
+    return state.allocations
+      .flatMap(
+        allocation =>
+          Array.from(
+            {
+              length:
+                allocation.quantity
+            },
+            () => allocation
+          )
+      )
+      .map(
+        allocation => {
+
+          ticketNumber++;
+
+
+          return {
+
+            ticketNumber,
+
+            matchId:
+              match.id,
+
+            match:
+              `${match.home} vs ${match.away}`,
+
+            venue:
+              venue.name,
+
+            section:
+              allocation.sectionId,
+
+            category:
+              allocation.tier,
+
+            price:
+              allocation.price,
+
+            fanId:
+              state.fanIds[
+                ticketNumber - 1
+              ]
+
+          };
+
+        }
+      );
+
+  }
+
+
+  /* =========================================================
+     SUMMARY
+  ========================================================= */
+
+  function renderSummary() {
+
+    const lines =
+      $('ticket-lines');
+
+
+    if (!lines) {
+      return;
+    }
+
+
+    if (
+      !state.allocations.length
+    ) {
+
+      lines.innerHTML = `
+        <div class="empty-summary">
+          Select a section on the stadium map.
+        </div>
+      `;
+
+    } else {
+
+      lines.innerHTML =
+        state.allocations
+          .map(
+            allocation => `
+              <div class="ticket-summary-line">
+
+                <div>
+
+                  <strong>
+                    ${escapeHtml(
+                      allocation.sectionId
+                    )}
+                  </strong>
+
+                  <small>
+                    ${allocation.tier.toUpperCase()}
+                  </small>
+
+                </div>
+
+
+                <div class="ticket-quantity-control">
+
+                  <button
+                    type="button"
+                    onclick="decreaseSection('${allocation.sectionId}')"
+                  >
+                    −
+                  </button>
+
+                  <span>
+                    ${allocation.quantity}
+                  </span>
+
+                  <button
+                    type="button"
+                    onclick="increaseSection('${allocation.sectionId}')"
+                  >
+                    +
+                  </button>
+
+                </div>
+
+
+                <strong>
+                  ${money(
+                    allocation.quantity *
+                    allocation.price
+                  )}
+                </strong>
+
+              </div>
+            `
+          )
+          .join('');
+
+    }
+
+
+    const subtotal =
+      totalPrice();
+
+    const fee =
+      serviceFee();
+
+    const total =
+      grandTotal();
+
+
+    if ($('selected-count')) {
+
+      $('selected-count')
+        .textContent =
+        totalTickets();
+
+    }
+
+
+    if ($('subtotal')) {
+
+      $('subtotal')
+        .textContent =
+        money(subtotal);
+
+    }
+
+
+    if ($('service-fee')) {
+
+      $('service-fee')
+        .textContent =
+        money(fee);
+
+    }
+
+
+    if ($('total')) {
+
+      $('total')
+        .textContent =
+        money(total);
+
+    }
+
+
+    const checkout =
+      $('checkout-button');
+
+
+    if (checkout) {
+
+      checkout.disabled =
+        totalTickets() === 0;
+
+    }
+
+  }
+
+
+  /* =========================================================
+     MAP VISUAL STATE
+  ========================================================= */
+
+  function updateMapSelectionState() {
+
+    document
+      .querySelectorAll(
+        '#stadium-interactive-svg path[data-section-id]'
+      )
+      .forEach(path => {
+
+        const selected =
+          state.allocations.some(
+            allocation =>
+              allocation.sectionId ===
+              path.dataset.sectionId
+          );
+
+
+        path.classList.toggle(
+          'svg-seat-selected',
+          selected
+        );
+
+      });
+
+  }
+
+
+  /* =========================================================
+     GLOBAL UI UPDATE
+  ========================================================= */
+
+  function updateAll() {
+
+    updateMapSelectionState();
+
+    renderSummary();
+
+    renderFanIdAssignments();
+
+  }
+
+
+  /* =========================================================
+     CLEAR
+  ========================================================= */
+
+  function clearTickets() {
+
+    state.allocations = [];
+
+    state.fanIds = [];
+
+    updateAll();
+
+    notify(
+      'Ticket selection cleared.'
+    );
+
+  }
+
+
+  /* =========================================================
+     NOTIFICATION
+  ========================================================= */
+
+  function notify(message) {
+
+    const toast =
+      $('toast-notification');
+
+    const text =
+      $('toast-message');
+
+
+    if (!toast || !text) {
+      alert(message);
+      return;
+    }
+
+
+    text.textContent =
+      message;
+
+
+    toast.classList.remove(
+      'opacity-0',
+      'translate-y-6'
+    );
+
+
+    clearTimeout(
+      toast._timer
+    );
+
+
+    toast._timer =
+      setTimeout(
+        () => {
+
+          toast.classList.add(
+            'opacity-0',
+            'translate-y-6'
+          );
+
+        },
+        3000
+      );
+
+  }
+
+
+  /* =========================================================
+     CHECKOUT
+  ========================================================= */
+
+  function startCheckout() {
+
+    if (
+      !totalTickets()
+    ) {
+
+      notify(
+        'Select at least one ticket.'
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * Fan IDs must be entered before payment.
+     */
+
+    if (
+      !validateFanIds()
+    ) {
+
+      const fanBlock =
+        $('fan-id-assignments');
+
+      if (fanBlock) {
+
+        fanBlock.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+
+      }
+
+      return;
+
+    }
+
+
+    const review =
+      $('checkout-review');
+
+
+    if (review) {
+
+      review.innerHTML =
+        buildOrderLines()
+          .map(
+            line => `
+              <div class="checkout-review-line">
+
+                <div>
+
+                  <strong>
+                    Ticket ${line.ticketNumber}
+                  </strong>
+
+                  <span>
+                    ${escapeHtml(
+                      line.section
+                    )}
+                    ·
+                    ${line.category.toUpperCase()}
+                  </span>
+
+                </div>
+
+
+                <div>
+
+                  <span>
+                    Fan ID
+                  </span>
+
+                  <strong>
+                    ${escapeHtml(
+                      line.fanId
+                    )}
+                  </strong>
+
+                </div>
+
+
+                <strong>
+                  ${money(line.price)}
+                </strong>
+
+              </div>
+            `
+          )
+          .join('');
+
+    }
+
+
+    if ($('checkout-total')) {
+
+      $('checkout-total')
+        .textContent =
+        money(grandTotal());
+
+    }
+
+
+    const modal =
+      $('checkout-modal');
+
+
+    if (modal) {
+
+      modal.classList.remove(
         'hidden'
       );
 
-      els.selectedSeatChips.innerHTML =
-        '';
+      modal.classList.add(
+        'flex'
+      );
 
-      return;
     }
-
-
-    els.selectedSeatsPreview.classList.remove(
-      'hidden'
-    );
-
-
-    els.selectedSeatChips.innerHTML =
-      selected.map(seat => {
-
-        return `
-          <span class="seat-chip">
-            ${escapeHtml(seat.label)}
-          </span>
-        `;
-
-      }).join('');
-
-  }
-
-
-  /* ==========================================================
-     Checkout
-  ========================================================== */
-
-  function openCheckout() {
-
-    const {
-      selected,
-      subtotal,
-      serviceFee,
-      total
-    } = calculateTotals();
-
-
-    if (!selected.length) {
-      return;
-    }
-
-
-    els.checkoutReview.innerHTML = `
-
-      <div class="checkout-review-line">
-
-        <span>
-          Match
-        </span>
-
-        <strong>
-          ${escapeHtml(
-            `${teamName(match.home)} vs ${teamName(match.away)}`
-          )}
-        </strong>
-
-      </div>
-
-
-      <div class="checkout-review-line">
-
-        <span>
-          Venue
-        </span>
-
-        <strong>
-          ${escapeHtml(venue.shortName || venue.name)}
-        </strong>
-
-      </div>
-
-
-      <div class="checkout-review-line">
-
-        <span>
-          Seats
-        </span>
-
-        <strong>
-          ${selected.length}
-        </strong>
-
-      </div>
-
-
-      <div class="checkout-review-line">
-
-        <span>
-          Tickets
-        </span>
-
-        <strong>
-          ${money(subtotal)}
-        </strong>
-
-      </div>
-
-
-      <div class="checkout-review-line">
-
-        <span>
-          Service levy
-        </span>
-
-        <strong>
-          ${money(serviceFee)}
-        </strong>
-
-      </div>
-
-    `;
-
-
-    els.checkoutTotal.textContent =
-      money(total);
-
-
-    els.checkoutModal.classList.remove(
-      'hidden'
-    );
-
-    els.checkoutModal.setAttribute(
-      'aria-hidden',
-      'false'
-    );
-
-
-    document.body.style.overflow =
-      'hidden';
 
   }
 
 
   function closeCheckout() {
 
-    els.checkoutModal.classList.add(
-      'hidden'
-    );
-
-    els.checkoutModal.setAttribute(
-      'aria-hidden',
-      'true'
-    );
+    const modal =
+      $('checkout-modal');
 
 
-    document.body.style.overflow =
-      '';
-
-  }
-
-
-  /* ==========================================================
-     Continue from checkout
-  ========================================================== */
-
-  function continueCheckout() {
-
-    const {
-      selected,
-      subtotal,
-      serviceFee,
-      total
-    } = calculateTotals();
-
-
-    if (!selected.length) {
+    if (!modal) {
       return;
     }
 
 
-    /*
-     * Store the current ticketing state so a future
-     * checkout/payment page can consume it.
-     */
-
-    const payload = {
-
-      matchId: match.id,
-
-      match: {
-        home: match.home,
-        away: match.away,
-        stage: match.stage,
-        date: match.date,
-        time: match.time
-      },
-
-      venue: {
-        key: match.venueKey,
-        name: venue.name,
-        city: venue.city
-      },
-
-      seats: selected.map(seat => ({
-        id: seat.key,
-        label: seat.label,
-        stand: seat.stand,
-        tier: seat.tier,
-        price: seat.price
-      })),
-
-      pricing: {
-        subtotal,
-        serviceFee,
-        total
-      },
-
-      createdAt:
-        new Date().toISOString()
-
-    };
-
-
-    sessionStorage.setItem(
-      'pamojaTicketSelection',
-      JSON.stringify(payload)
+    modal.classList.add(
+      'hidden'
     );
 
-
-    /*
-     * The current project does not yet have a production
-     * payment endpoint. For now, confirm that the selection
-     * has been captured and keep the user on the ticket page.
-     */
-
-    closeCheckout();
-
-
-    window.alert(
-      'Your ticket selection has been saved for this session. The payment/checkout integration can now be connected to the project backend.'
+    modal.classList.remove(
+      'flex'
     );
 
   }
 
 
-  /* ==========================================================
-     Events
-  ========================================================== */
+  /* =========================================================
+     PAYMENT
+  ========================================================= */
 
-  els.checkoutButton.addEventListener(
-    'click',
-    openCheckout
-  );
+  function confirmPayment() {
 
+    if (
+      !validateFanIds()
+    ) {
 
-  els.closeCheckout.addEventListener(
-    'click',
-    closeCheckout
-  );
+      closeCheckout();
 
+      return;
 
-  els.cancelCheckout.addEventListener(
-    'click',
-    closeCheckout
-  );
+    }
 
 
-  els.confirmCheckout.addEventListener(
-    'click',
-    continueCheckout
-  );
+    const button =
+      $('confirm-checkout');
 
 
-  els.checkoutModal
-    .querySelector('.checkout-backdrop')
-    .addEventListener(
-      'click',
-      closeCheckout
-    );
+    if (button) {
+
+      button.disabled =
+        true;
+
+      button.textContent =
+        'Processing payment…';
+
+    }
 
 
-  document.addEventListener(
-    'keydown',
-    event => {
+    /*
+     * This is the front-end payment placeholder.
+     *
+     * Later this should call the actual payment backend.
+     */
 
-      if (
-        event.key === 'Escape' &&
-        !els.checkoutModal.classList.contains('hidden')
-      ) {
+    setTimeout(
+      () => {
+
+        const order =
+          buildOrderLines();
+
+
+        console.log(
+          'PAMOJA ORDER',
+          {
+            match,
+            venue,
+            tickets: order,
+            subtotal: totalPrice(),
+            serviceFee: serviceFee(),
+            total: grandTotal()
+          }
+        );
+
 
         closeCheckout();
 
-      }
+
+        showSuccess();
+
+
+        if (button) {
+
+          button.disabled =
+            false;
+
+          button.textContent =
+            'Confirm & Pay';
+
+        }
+
+      },
+      900
+    );
+
+  }
+
+
+  /* =========================================================
+     SUCCESS
+  ========================================================= */
+
+  function showSuccess() {
+
+    const modal =
+      $('success-modal');
+
+
+    if (!modal) {
+
+      notify(
+        'Payment successful.'
+      );
+
+      return;
+
+    }
+
+
+    const orderNumber =
+      `PAM-${Date.now()
+        .toString()
+        .slice(-8)}`;
+
+
+    const orderEl =
+      $('success-order-number');
+
+
+    if (orderEl) {
+
+      orderEl.textContent =
+        orderNumber;
+
+    }
+
+
+    const countEl =
+      $('success-ticket-count');
+
+
+    if (countEl) {
+
+      countEl.textContent =
+        `${totalTickets()} personalized ticket${totalTickets() === 1 ? '' : 's'}`;
+
+    }
+
+
+    modal.classList.remove(
+      'hidden'
+    );
+
+    modal.classList.add(
+      'flex'
+    );
+
+  }
+
+
+  /* =========================================================
+     GLOBAL API
+  ========================================================= */
+
+  window.increaseSection =
+    increaseSection;
+
+  window.decreaseSection =
+    decreaseSection;
+
+  window.removeSection =
+    removeSection;
+
+  window.clearSelectedSeats =
+    clearTickets;
+
+  window.openTicketCheckout =
+    startCheckout;
+
+  window.closeTicketCheckout =
+    closeCheckout;
+
+  window.confirmTicketCheckout =
+    confirmPayment;
+
+
+  /* =========================================================
+     BOOT
+  ========================================================= */
+
+  document.addEventListener(
+    'DOMContentLoaded',
+    async () => {
+
+      renderMatch();
+
+      await loadOriginalMap();
+
+      updateAll();
 
     }
   );
-
-
-  /* ==========================================================
-     Initialisation
-  ========================================================== */
-
-  renderMatchHeader();
-
-  renderCategoryPricing();
-
-  renderStadium();
-
-  updateSummary();
 
 })();

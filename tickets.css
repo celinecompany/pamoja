@@ -1757,3 +1757,587 @@
   }
 
 }
+
+/* ============================================================
+   EXACT OLD-INDEX SVG MAP
+============================================================ */
+
+.ticket-stadium-map {
+  position: relative;
+
+  width: 100%;
+  min-height: 620px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 18px;
+
+  overflow: hidden;
+
+  border-radius: 16px;
+
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(15, 23, 42, .95) 0%,
+      rgba(3, 7, 18, .98) 100%
+    );
+
+  border: 1px solid #1e293b;
+}
+
+
+/*
+ * This is intentionally the same SVG sizing behaviour
+ * used by old-index.html.
+ */
+
+#stadium-interactive-svg {
+  display: block;
+
+  width: 100%;
+  height: auto;
+
+  max-height: 680px;
+
+  margin: 0 auto;
+
+  overflow: visible;
+}
+
+
+#stadium-interactive-svg path {
+  cursor: pointer;
+
+  transition:
+    fill .2s ease,
+    opacity .2s ease,
+    filter .2s ease,
+    stroke .2s ease;
+}
+
+
+#stadium-interactive-svg path:hover {
+  filter:
+    brightness(1.35)
+    drop-shadow(
+      0 0 8px
+      rgba(255,255,255,.65)
+    );
+
+  stroke: #ffffff !important;
+
+  stroke-width: 2px !important;
+
+  opacity: 1 !important;
+}
+
+
+#stadium-interactive-svg path.svg-seat-selected {
+  filter:
+    brightness(1.45)
+    drop-shadow(
+      0 0 12px
+      rgba(16,185,129,.95)
+    ) !important;
+
+  stroke: #6ee7b7 !important;
+
+  stroke-width: 3px !important;
+
+  opacity: 1 !important;
+}
+
+
+/*
+ * Loading state
+ */
+
+.map-loading-state {
+  min-height: 460px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  color: #94a3b8;
+
+  font-family:
+    "JetBrains Mono",
+    monospace;
+
+  font-size: 11px;
+
+  text-transform: uppercase;
+
+  letter-spacing: .08em;
+}
+
+
+.map-loading-spinner {
+  width: 18px;
+  height: 18px;
+
+  border:
+    2px solid
+    rgba(148,163,184,.2);
+
+  border-top-color:
+    #f59e0b;
+
+  border-radius: 50%;
+
+  animation:
+    ticket-map-spin .8s linear infinite;
+}
+
+
+@keyframes ticket-map-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+.map-error-state {
+  min-height: 460px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  text-align: center;
+
+  color: #94a3b8;
+}
+
+
+.map-error-state strong {
+  color: #fbbf24;
+
+  font-family: Outfit, sans-serif;
+
+  font-size: 16px;
+}
+
+
+.map-error-state span {
+  font-size: 12px;
+}
+
+
+/* ============================================================
+   MAP TOOLBAR
+============================================================ */
+
+.ticket-map-toolbar {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  margin-bottom: 14px;
+
+  flex-wrap: wrap;
+}
+
+
+.stand-filter-group,
+.ticket-map-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  flex-wrap: wrap;
+}
+
+
+.stand-filter-pill,
+.ticket-map-actions button {
+  appearance: none;
+
+  border: 1px solid #334155;
+
+  background: rgba(15,23,42,.85);
+
+  color: #cbd5e1;
+
+  border-radius: 9px;
+
+  padding: 7px 11px;
+
+  font-size: 10px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background .15s ease,
+    border-color .15s ease,
+    color .15s ease,
+    transform .15s ease;
+}
+
+
+.stand-filter-pill:hover,
+.ticket-map-actions button:hover {
+  transform: translateY(-1px);
+
+  border-color: #475569;
+
+  color: white;
+}
+
+
+.stand-filter-pill.active {
+  background: #f59e0b;
+
+  border-color: #f59e0b;
+
+  color: #030712;
+}
+
+
+#best-available-btn {
+  border-color:
+    rgba(16,185,129,.35);
+
+  color: #6ee7b7;
+}
+
+
+#clear-seats-btn {
+  color: #fca5a5;
+
+  border-color:
+    rgba(239,68,68,.25);
+}
+
+
+/* ============================================================
+   MAP HUD
+============================================================ */
+
+.map-hud {
+  display: grid;
+
+  grid-template-columns:
+    1.5fr
+    1fr
+    1fr
+    1.2fr;
+
+  gap: 10px;
+
+  margin-top: 12px;
+
+  padding: 12px;
+
+  border:
+    1px solid
+    rgba(51,65,85,.75);
+
+  border-radius: 12px;
+
+  background:
+    rgba(2,6,23,.72);
+}
+
+
+.map-hud > div {
+  min-width: 0;
+}
+
+
+.map-hud-label {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: #64748b;
+
+  font-family:
+    "JetBrains Mono",
+    monospace;
+
+  font-size: 8px;
+
+  text-transform: uppercase;
+
+  letter-spacing: .1em;
+}
+
+
+.map-hud strong {
+  display: block;
+
+  overflow: hidden;
+
+  color: #e2e8f0;
+
+  font-size: 11px;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+@media (max-width: 700px) {
+
+  .ticket-stadium-map {
+    min-height: 400px;
+
+    padding: 8px;
+  }
+
+  .map-hud {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .ticket-map-toolbar {
+    align-items: stretch;
+  }
+
+  .stand-filter-group,
+  .ticket-map-actions {
+    width: 100%;
+  }
+
+  .stand-filter-pill,
+  .ticket-map-actions button {
+    flex: 1;
+  }
+
+}
+
+.ticket-card {
+  background: rgba(11, 17, 32, .88);
+  border: 1px solid rgba(51, 65, 85, .8);
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 18px;
+}
+
+.ticket-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.ticket-section-heading h2 {
+  margin: 4px 0;
+  color: #f8fafc;
+  font-family: Outfit, sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.ticket-section-heading p {
+  max-width: 720px;
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.fan-id-required-badge {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 158, 11, .3);
+  background: rgba(245, 158, 11, .08);
+  color: #fbbf24;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.fan-id-assignment-list {
+  display: grid;
+  gap: 8px;
+}
+
+.fan-ticket-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+  align-items: center;
+  gap: 20px;
+  padding: 14px;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, .7);
+}
+
+.fan-ticket-number span,
+.fan-ticket-number small {
+  display: block;
+}
+
+.fan-ticket-number span {
+  color: #64748b;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.fan-ticket-number strong {
+  display: block;
+  margin-top: 3px;
+  color: #e2e8f0;
+  font-size: 13px;
+}
+
+.fan-ticket-number small {
+  margin-top: 3px;
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.fan-id-field label {
+  display: block;
+  margin-bottom: 5px;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.fan-id-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #334155;
+  border-radius: 9px;
+  outline: none;
+  background: #0f172a;
+  color: #fbbf24;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.fan-id-input:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, .15);
+}
+
+.fan-id-policy {
+  display: flex;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 11px;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, .05);
+  border: 1px solid rgba(245, 158, 11, .12);
+}
+
+.fan-id-policy span {
+  color: #fbbf24;
+}
+
+.fan-id-policy p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.ticket-summary-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(51, 65, 85, .45);
+}
+
+.ticket-summary-line strong {
+  color: #e2e8f0;
+  font-size: 11px;
+}
+
+.ticket-summary-line small {
+  display: block;
+  margin-top: 2px;
+  color: #64748b;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 8px;
+}
+
+.ticket-quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.ticket-quantity-control button {
+  width: 25px;
+  height: 25px;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  background: #0f172a;
+  color: #f8fafc;
+  cursor: pointer;
+}
+
+.ticket-quantity-control button:hover {
+  border-color: #f59e0b;
+  color: #fbbf24;
+}
+
+.ticket-quantity-control span {
+  min-width: 15px;
+  text-align: center;
+  color: #fbbf24;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.empty-summary,
+.fan-id-empty {
+  padding: 20px;
+  color: #64748b;
+  text-align: center;
+  font-size: 11px;
+}
+
+@media (max-width: 700px) {
+
+  .ticket-section-heading {
+    flex-direction: column;
+  }
+
+  .fan-ticket-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ticket-summary-line {
+    grid-template-columns: 1fr auto;
+  }
+
+  .ticket-summary-line > strong:last-child {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+}
