@@ -39,20 +39,21 @@
   const state = {
 
     /*
+     * AFCON RULE: one ticket per Fan ID per match (anti-hoarding).
      * Each entry is a section allocation.
      *
      * {
      *   sectionId: 'SECTION-42',
      *   tier: 'cat1',
      *   price: 3000,
-     *   quantity: 4,
+     *   quantity: 1,
      *   path: SVGPathElement
      * }
      */
     allocations: [],
 
     /*
-     * One Fan ID per ticket.
+     * One Fan ID per ticket, linked at checkout time.
      */
     fanIds: [],
 
@@ -61,7 +62,14 @@
      */
     step: 1,
 
-    svgLoaded: false
+    svgLoaded: false,
+
+    /*
+     * 10-minute checkout hold (CAF payment window).
+     */
+    checkoutTimerId: null,
+    checkoutDeadline: 0,
+    checkoutSecondsLeft: 0
 
   };
 
@@ -148,6 +156,29 @@
   }
 
 
+  function setText(id, value) {
+
+    const el =
+      $(id);
+
+    if (el) {
+      el.textContent = value;
+    }
+
+  }
+
+
+  function getSingleFanIdInput() {
+
+    return (
+      $('yalla-id') ||
+      $('fan-id-input-0') ||
+      document.querySelector('.fan-id-input')
+    );
+
+  }
+
+
   function escapeHtml(value) {
 
     return String(value || '')
@@ -156,6 +187,138 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+
+  }
+
+
+  /* =========================================================
+     AFCON / PAMOJA RULE HELPERS (logic only, no visual change)
+     ========================================================= */
+
+  function maxTicketsPerOrder() {
+
+    const configured =
+      Number(
+        data.rules &&
+        data.rules.maximumTicketsPerOrder
+      );
+
+    /*
+     * AFCON RULE: individual account limit is one ticket per match.
+     * Clamp any legacy larger configuration down to 1.
+     */
+    if (!Number.isFinite(configured) || configured < 1) {
+      return 1;
+    }
+
+    return Math.min(configured, 1);
+
+  }
+
+
+  function getFanIdPattern() {
+
+    try {
+
+      if (
+        Array.isArray(data.fanIdPatternSources) &&
+        data.fanIdPatternSources.length
+      ) {
+        return new RegExp(
+          `(?:${data.fanIdPatternSources.join('|')})`,
+          'i'
+        );
+      }
+
+    } catch (error) {
+      /* fall through to default pattern */
+    }
+
+    return /^(?:PAMOJA-[A-Z0-9]{6}|YALLA-[A-Z]{2}-\d{4}-[A-Z0-9]{4})$/i;
+
+  }
+
+
+  function normalizeFanId(value) {
+
+    return String(value || '')
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, '');
+
+  }
+
+
+  function isFanIdFormatValid(value) {
+
+    return getFanIdPattern().test(
+      normalizeFanId(value)
+    );
+
+  }
+
+
+  function getCurrentPhase() {
+
+    const phases =
+      data.salesPhases || {};
+
+    const phase =
+      String(phases.currentPhase || 'general')
+        .trim()
+        .toLowerCase();
+
+    if (
+      phase === 'visa-presale' ||
+      phase === 'visa' ||
+      phase === 'presale'
+    ) {
+      return 'visa-presale';
+    }
+
+    if (phase === 'final' || phase === 'final-drops') {
+      return 'final';
+    }
+
+    return 'general';
+
+  }
+
+
+  function getAcceptedPaymentMethods() {
+
+    const methods =
+      Array.isArray(data.paymentMethods)
+        ? data.paymentMethods.filter(method => method && method.enabled)
+        : [];
+
+    /*
+     * Phase 1: Visa presale = Visa only (48h priority window).
+     * Phase 2/3: general + final drops accept Visa, Mastercard,
+     * M-Pesa and Airtel Money.
+     */
+    if (getCurrentPhase() === 'visa-presale') {
+      return methods.filter(
+        method =>
+          String(method.id || '').toLowerCase() === 'visa'
+      );
+    }
+
+    return methods;
+
+  }
+
+
+  function getCheckoutHoldSeconds() {
+
+    const configured =
+      Number(data.checkoutHoldSeconds);
+
+    if (Number.isFinite(configured) && configured > 0) {
+      return Math.floor(configured);
+    }
+
+    return 600;
 
   }
 
@@ -595,28 +758,16 @@
 
 
     /*
-     * Section already selected:
-     *
-     * Increase quantity rather than creating
-     * another "seat".
+     * AFCON RULE: one ticket per match per account.
+     * Clicking the already-selected section deselects it
+     * (toggle). Clicking a different section REPLACES the
+     * current pick — the map holds a single seat/category,
+     * and pricing always reflects that one active selection.
      */
 
     if (allocation) {
 
-      if (
-        totalTickets() >=
-        data.rules.maximumTicketsPerOrder
-      ) {
-
-        notify(
-          `You can select up to ${data.rules.maximumTicketsPerOrder} tickets per match.`
-        );
-
-        return;
-      }
-
-
-      allocation.quantity++;
+      state.allocations = [];
 
       updateAll();
 
@@ -624,20 +775,14 @@
     }
 
 
-    /*
-     * New section.
-     */
-
     if (
+      state.allocations.length > 0 ||
       totalTickets() >=
-      data.rules.maximumTicketsPerOrder
+      maxTicketsPerOrder()
     ) {
 
-      notify(
-        `You can select up to ${data.rules.maximumTicketsPerOrder} tickets per match.`
-      );
+      state.allocations = [];
 
-      return;
     }
 
 
@@ -678,35 +823,16 @@
     sectionId
   ) {
 
-    if (
-      totalTickets() >=
-      data.rules.maximumTicketsPerOrder
-    ) {
+    /*
+     * AFCON RULE: quantity is fixed at 1 ticket per match.
+     * The +/- steppers stay wired but cannot exceed 1, so the
+     * single active seat/category keeps driving the price.
+     */
+    notify(
+      `CAF limit: 1 ticket per match per Fan ID. To change category, pick a different section on the map.`
+    );
 
-      notify(
-        `Maximum ${data.rules.maximumTicketsPerOrder} tickets per match.`
-      );
-
-      return;
-    }
-
-
-    const allocation =
-      state.allocations.find(
-        item =>
-          item.sectionId ===
-          sectionId
-      );
-
-
-    if (!allocation) {
-      return;
-    }
-
-
-    allocation.quantity++;
-
-    updateAll();
+    return;
 
   }
 
@@ -715,6 +841,10 @@
     sectionId
   ) {
 
+    /*
+     * AFCON RULE: single-ticket order, so decreasing removes
+     * the active pick and releases the held seat.
+     */
     const index =
       state.allocations.findIndex(
         item =>
@@ -728,23 +858,10 @@
     }
 
 
-    const allocation =
-      state.allocations[index];
-
-
-    allocation.quantity--;
-
-
-    if (
-      allocation.quantity <= 0
-    ) {
-
-      state.allocations.splice(
-        index,
-        1
-      );
-
-    }
+    state.allocations.splice(
+      index,
+      1
+    );
 
 
     updateAll();
@@ -778,6 +895,35 @@
   ========================================================= */
 
   function renderFanIdAssignments() {
+
+    /*
+     * Live single Fan ID field in tickets.html stays authoritative.
+     * Mirror it into state without touching its visual layout.
+     */
+    const singleInput =
+      getSingleFanIdInput();
+
+    if (singleInput) {
+
+      if (
+        document.activeElement !== singleInput &&
+        typeof state.fanIds[0] === 'string' &&
+        singleInput.value !== state.fanIds[0]
+      ) {
+        singleInput.value = state.fanIds[0];
+      }
+
+      if (singleInput.value) {
+        state.fanIds[0] = normalizeFanId(singleInput.value);
+      }
+
+      renderFanIdStatus(
+        state.fanIds[0]
+          ? isFanIdFormatValid(state.fanIds[0])
+          : null
+      );
+
+    }
 
     const container =
       $('fan-id-assignments');
@@ -923,9 +1069,9 @@
 
 
             state.fanIds[index] =
-              event.target.value
-                .trim()
-                .toUpperCase();
+              normalizeFanId(
+                event.target.value
+              );
 
           }
         );
@@ -956,17 +1102,34 @@
     }
 
 
+    /*
+     * AFCON RULE: one ticket per match per account.
+     */
+    if (
+      count > maxTicketsPerOrder()
+    ) {
+
+      notify(
+        'CAF limit: 1 ticket per match per Fan ID.'
+      );
+
+      return false;
+
+    }
+
+
     const ids =
       state.fanIds
         .slice(0, count)
         .map(
           id =>
-            String(id)
-              .trim()
-              .toUpperCase()
+            normalizeFanId(id)
         );
 
 
+    /*
+     * Mandatory Fan ID: purchase cannot proceed without it.
+     */
     if (
       ids.some(
         id => !id
@@ -975,6 +1138,25 @@
 
       notify(
         'Every ticket must have a Fan ID.'
+      );
+
+      return false;
+
+    }
+
+
+    /*
+     * Fan ID format check (PAMOJA-XXXXXX or YALLA-XX-20XX-XXXX).
+     * Name on ticket must match this Fan ID at the gate.
+     */
+    if (
+      ids.some(
+        id => !isFanIdFormatValid(id)
+      )
+    ) {
+
+      notify(
+        'Enter a valid Fan ID (e.g. YALLA-KE-2026-AB12). Name on ticket must match the Fan ID.'
       );
 
       return false;
@@ -1029,7 +1211,7 @@
           Array.from(
             {
               length:
-                allocation.quantity
+                1
             },
             () => allocation
           )
@@ -1065,7 +1247,16 @@
             fanId:
               state.fanIds[
                 ticketNumber - 1
-              ]
+              ],
+
+            /*
+             * AFCON RULE: personalized + non-transferable.
+             * A ticket cannot be used for immigration alone:
+             * stadium face verification is mandatory.
+             */
+            personalized: true,
+            nonTransferable: true,
+            faceVerificationRequired: true
 
           };
 
@@ -1081,85 +1272,12 @@
 
   function renderSummary() {
 
-    const lines =
-      $('ticket-lines');
-
-
-    if (!lines) {
-      return;
-    }
-
-
-    if (
-      !state.allocations.length
-    ) {
-
-      lines.innerHTML = `
-        <div class="empty-summary">
-          Select a section on the stadium map.
-        </div>
-      `;
-
-    } else {
-
-      lines.innerHTML =
-        state.allocations
-          .map(
-            allocation => `
-              <div class="ticket-summary-line">
-
-                <div>
-
-                  <strong>
-                    ${escapeHtml(
-                      allocation.sectionId
-                    )}
-                  </strong>
-
-                  <small>
-                    ${allocation.tier.toUpperCase()}
-                  </small>
-
-                </div>
-
-
-                <div class="ticket-quantity-control">
-
-                  <button
-                    type="button"
-                    onclick="decreaseSection('${allocation.sectionId}')"
-                  >
-                    −
-                  </button>
-
-                  <span>
-                    ${allocation.quantity}
-                  </span>
-
-                  <button
-                    type="button"
-                    onclick="increaseSection('${allocation.sectionId}')"
-                  >
-                    +
-                  </button>
-
-                </div>
-
-
-                <strong>
-                  ${money(
-                    allocation.quantity *
-                    allocation.price
-                  )}
-                </strong>
-
-              </div>
-            `
-          )
-          .join('');
-
-    }
-
+    /*
+     * Live tickets.html panels (authoritative).
+     * Keep legacy ticket-lines output too so both shells stay in sync.
+     */
+    const tickets =
+      totalTickets();
 
     const subtotal =
       totalPrice();
@@ -1170,55 +1288,182 @@
     const total =
       grandTotal();
 
+    const lines =
+      $('ticket-lines');
 
-    if ($('selected-count')) {
+    const seatLines =
+      $('summary-seat-lines');
 
-      $('selected-count')
-        .textContent =
-        totalTickets();
+    const seatList =
+      $('selected-seat-list');
+
+
+    if (lines) {
+
+      if (
+        !state.allocations.length
+      ) {
+
+        lines.innerHTML = `
+          <div class="empty-summary">
+            Select a section on the stadium map.
+          </div>
+        `;
+
+      } else {
+
+        lines.innerHTML =
+          state.allocations
+            .map(
+              allocation => `
+                <div class="ticket-summary-line">
+
+                  <div>
+
+                    <strong>
+                      ${escapeHtml(
+                        allocation.sectionId
+                      )}
+                    </strong>
+
+                    <small>
+                      ${allocation.tier.toUpperCase()} · 1 ticket (CAF limit)
+                    </small>
+
+                  </div>
+
+
+                  <div class="ticket-quantity-control">
+
+                    <button
+                      type="button"
+                      onclick="decreaseSection('${allocation.sectionId}')"
+                    >
+                      −
+                    </button>
+
+                    <span>
+                      ${allocation.quantity}
+                    </span>
+
+                    <button
+                      type="button"
+                      onclick="increaseSection('${allocation.sectionId}')"
+                    >
+                      +
+                    </button>
+
+                  </div>
+
+
+                  <strong>
+                    ${money(
+                      allocation.quantity *
+                      allocation.price
+                    )}
+                  </strong>
+
+                </div>
+              `
+            )
+            .join('');
+
+      }
 
     }
 
 
-    if ($('subtotal')) {
+    if (seatLines) {
 
-      $('subtotal')
-        .textContent =
-        money(subtotal);
+      if (!state.allocations.length) {
+
+        seatLines.innerHTML = `
+          <div class="text-[11px] text-slate-500">
+            No seats selected yet. Click a coloured section on the map.
+          </div>
+        `;
+
+      } else {
+
+        seatLines.innerHTML =
+          state.allocations
+            .map(
+              allocation => `
+                <div class="flex items-center justify-between text-[11px] py-1 border-b border-slate-800/60">
+                  <span class="font-mono text-slate-200">
+                    ${escapeHtml(allocation.sectionId)} · ${allocation.tier.toUpperCase()}
+                  </span>
+                  <span class="font-mono text-amber-400">
+                    ${money(allocation.price)}
+                  </span>
+                </div>
+              `
+            )
+            .join('');
+
+      }
 
     }
 
 
-    if ($('service-fee')) {
+    if (seatList) {
 
-      $('service-fee')
-        .textContent =
-        money(fee);
+      if (!state.allocations.length) {
+
+        seatList.innerHTML = `
+          <span class="text-[10px] text-slate-500">
+            No seats selected yet.
+          </span>
+        `;
+
+      } else {
+
+        seatList.innerHTML =
+          state.allocations
+            .map(
+              allocation => `
+                <span class="px-2 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-[10px] font-mono">
+                  ${escapeHtml(allocation.sectionId)} · ${allocation.tier.toUpperCase()} · ${money(allocation.price)}
+                </span>
+              `
+            )
+            .join('');
+
+      }
 
     }
 
 
-    if ($('total')) {
-
-      $('total')
-        .textContent =
-        money(total);
-
-    }
+    /*
+     * Same AFCON single-ticket totals across every ID variant.
+     */
+    setText('selected-count', String(tickets));
+    setText('subtotal', money(subtotal));
+    setText('service-fee', money(fee));
+    setText('total', money(total));
+    setText('selected-seat-count', tickets === 1 ? '1 seat selected' : `${tickets} seats selected`);
+    setText('map-selection-count', tickets === 1 ? '1 seat held' : `${tickets} seats held`);
+    setText('summary-match', `${match.home} vs ${match.away}`);
+    setText('summary-venue', `${venue.name} · ${venue.city}`);
+    setText('summary-date', `${match.date} · ${match.time}`);
+    setText('summary-seat-count', tickets === 1 ? '1 seat selected' : `${tickets} seats selected`);
+    setText('summary-subtotal', money(subtotal));
+    setText('summary-vat', money(fee));
+    setText('summary-total', money(total));
 
 
     const checkout =
       $('checkout-button');
 
-
     if (checkout) {
 
       checkout.disabled =
-        totalTickets() === 0;
+        tickets === 0;
 
     }
 
-  }
+
+    updateStepGates();
 
 
   /* =========================================================
@@ -1249,6 +1494,311 @@
       });
 
   }
+
+
+  function updateStepGates() {
+
+    const tickets =
+      totalTickets();
+
+    const fanOk =
+      tickets > 0 &&
+      state.fanIds
+        .slice(0, tickets)
+        .every(id => isFanIdFormatValid(id || ''));
+
+    const detailsOk =
+      tickets > 0 && fanOk;
+
+    setStepState(
+      'continue-details-btn',
+      tickets > 0
+    );
+
+    setStepState(
+      'continue-payment-btn',
+      detailsOk
+    );
+
+    setStepState(
+      'pay-now-btn',
+      detailsOk
+    );
+
+    setStepState(
+      'checkout-step-seat',
+      tickets > 0,
+      true
+    );
+
+    setStepState(
+      'checkout-step-details',
+      detailsOk,
+      true
+    );
+
+  }
+
+
+  function setStepState(id, enabled, isStep) {
+
+    const el =
+      $(id);
+
+    if (!el) {
+      return;
+    }
+
+    if (isStep) {
+
+      el.classList.toggle('active', !!enabled);
+
+      return;
+
+    }
+
+    el.disabled = !enabled;
+
+    el.classList.toggle('cursor-not-allowed', !enabled);
+
+    if (enabled) {
+
+      el.classList.remove('bg-slate-800', 'text-slate-500');
+
+      el.classList.add('bg-amber-500', 'text-slate-950');
+
+    } else {
+
+      el.classList.add('bg-slate-800', 'text-slate-500');
+
+      el.classList.remove('bg-amber-500', 'text-slate-950');
+
+    }
+
+  }
+
+
+  function wireStepButtons() {
+
+    /*
+     * Payment option buttons keep their existing look; selection is
+     * only used by the phase gate (Visa presale vs general release).
+     */
+    document
+      .querySelectorAll('.payment-option')
+      .forEach(option => {
+
+        if (option._wired) {
+          return;
+        }
+
+        option._wired = true;
+
+        option.addEventListener('click', () => {
+
+          document
+            .querySelectorAll('.payment-option')
+            .forEach(other => other.classList.remove('active'));
+
+          option.classList.add('active');
+
+          const mpesa =
+            $('mpesa-fields');
+
+          const card =
+            $('card-fields');
+
+          const useCard =
+            String(option.dataset.payment || '').toLowerCase() === 'card';
+
+          if (mpesa) {
+            mpesa.classList.toggle('hidden', useCard);
+          }
+
+          if (card) {
+            card.classList.toggle('hidden', !useCard);
+          }
+
+        });
+
+      });
+
+    const detailsBtn =
+      $('continue-details-btn');
+
+    if (detailsBtn && !detailsBtn._wired) {
+
+      detailsBtn._wired = true;
+
+      detailsBtn.addEventListener('click', () => {
+
+        const target =
+          $('fan-details-card') ||
+          $('fan-id-assignments');
+
+        if (target) {
+
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+
+        }
+
+        const input =
+          getSingleFanIdInput();
+
+        if (input) {
+          input.focus({ preventScroll: true });
+        }
+
+      });
+
+    }
+
+    const paymentBtn =
+      $('continue-payment-btn');
+
+    if (paymentBtn && !paymentBtn._wired) {
+
+      paymentBtn._wired = true;
+
+      paymentBtn.addEventListener('click', () => {
+
+        const target =
+          $('payment-method-card');
+
+        if (target) {
+
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+
+        }
+
+      });
+
+    }
+
+    const payBtn =
+      $('pay-now-btn');
+
+    if (payBtn && !payBtn._wired) {
+
+      payBtn._wired = true;
+
+      payBtn.addEventListener('click', () => {
+
+        startCheckoutFlow(true);
+
+      });
+
+    }
+
+    const verifyBtn =
+      $('verify-yalla-btn');
+
+    if (verifyBtn && !verifyBtn._wired) {
+
+      verifyBtn._wired = true;
+
+      verifyBtn.addEventListener('click', () => {
+
+        const input =
+          getSingleFanIdInput();
+
+        const value =
+          normalizeFanId(input ? input.value : '');
+
+        if (input) {
+          input.value = value;
+        }
+
+        state.fanIds[0] = value;
+
+        if (isFanIdFormatValid(value)) {
+
+          notify('Fan ID verified for this ticket.');
+          renderFanIdStatus(true);
+
+        } else {
+
+          notify('Enter a valid Fan ID (e.g. YALLA-KE-2026-AB12).');
+          renderFanIdStatus(false);
+
+        }
+
+        updateStepGates();
+
+      });
+
+    }
+
+    const singleInput =
+      getSingleFanIdInput();
+
+    if (singleInput && !singleInput._wired) {
+
+      singleInput._wired = true;
+
+      singleInput.addEventListener('input', event => {
+
+        const value =
+          normalizeFanId(event.target.value);
+
+        state.fanIds[0] = value;
+
+        renderFanIdStatus(
+          value ? isFanIdFormatValid(value) : null
+        );
+
+        updateStepGates();
+
+      });
+
+    }
+
+  }
+
+
+  function renderFanIdStatus(verified) {
+
+    const status =
+      $('yalla-status');
+
+    if (!status) {
+      return;
+    }
+
+    if (verified === true) {
+
+      status.className =
+        'text-[10px] font-bold text-emerald-400';
+
+      status.textContent =
+        'Fan ID verified - linked to this ticket.';
+
+    } else if (verified === false) {
+
+      status.className =
+        'text-[10px] font-bold text-red-400';
+
+      status.textContent =
+        'Invalid Fan ID format. Use YALLA-KE-2026-XXXX.';
+
+    } else {
+
+      status.className =
+        'text-[10px] text-slate-500';
+
+      status.textContent =
+        'Each ticket is linked to one Fan ID.';
+
+    }
+
+  }
+
 
 
   /* =========================================================
@@ -1336,6 +1886,331 @@
 
 
   /* =========================================================
+     CHECKOUT HOLD TIMER (strict 10-minute payment window)
+     ========================================================= */
+
+  function formatHoldTime(totalSeconds) {
+
+    const safe =
+      Math.max(0, Math.floor(totalSeconds || 0));
+
+    const minutes =
+      Math.floor(safe / 60);
+
+    const seconds =
+      safe % 60;
+
+    const pad =
+      value =>
+        String(value).padStart(2, '0');
+
+    return `${pad(minutes)}:${pad(seconds)}`;
+
+  }
+
+
+  function renderHoldTimer() {
+
+    const label =
+      $('hold-timer-value') ||
+      $('checkout-hold-timer');
+
+    if (label) {
+      label.textContent =
+        formatHoldTime(state.checkoutSecondsLeft);
+    }
+
+    const wrap =
+      $('hold-timer');
+
+    if (wrap) {
+      wrap.classList.toggle(
+        'hidden',
+        !(state.checkoutTimerId || state.checkoutSecondsLeft > 0)
+      );
+    }
+
+  }
+
+
+  function releaseHeldSeats(reason) {
+
+    stopCheckoutTimer(true);
+
+    closeCheckout();
+
+    state.allocations = [];
+
+    state.fanIds = [];
+
+    updateAll();
+
+    notify(
+      reason ||
+      'Payment window expired. Your held seat was released back to general sale.'
+    );
+
+  }
+
+
+  function stopCheckoutTimer(silent) {
+
+    if (state.checkoutTimerId) {
+
+      clearInterval(state.checkoutTimerId);
+
+      state.checkoutTimerId = null;
+
+    }
+
+    if (!silent) {
+      renderHoldTimer();
+    }
+
+  }
+
+
+  function startCheckoutTimer() {
+
+    stopCheckoutTimer(true);
+
+    state.checkoutSecondsLeft =
+      getCheckoutHoldSeconds();
+
+    state.checkoutDeadline =
+      Date.now() +
+      state.checkoutSecondsLeft * 1000;
+
+    renderHoldTimer();
+
+    state.checkoutTimerId =
+      setInterval(
+        () => {
+
+          const remaining =
+            Math.ceil(
+              (state.checkoutDeadline - Date.now()) / 1000
+            );
+
+          state.checkoutSecondsLeft =
+            Math.max(0, remaining);
+
+          renderHoldTimer();
+
+          /*
+           * CAF RULE: seats are stripped from the cart and
+           * returned to circulation when the window lapses.
+           */
+          if (state.checkoutSecondsLeft <= 0) {
+
+            releaseHeldSeats(
+              'Payment window expired (10:00). Your held seat was released. Please pick again.'
+            );
+
+          }
+
+        },
+        500
+      );
+
+  }
+
+
+  function renderPaymentMethods() {
+
+    /*
+     * Live payment card on tickets.html (no layout change):
+     * show the phase-accepted method names in the existing method box.
+     */
+    const liveMethodBox =
+      $('payment-method-name');
+
+    if (liveMethodBox) {
+      liveMethodBox.textContent =
+        getAcceptedPaymentMethods()
+          .map(method => method.name)
+          .join(' · ') || '—';
+    }
+
+    const livePhaseNote =
+      $('payment-phase-note');
+
+    if (livePhaseNote) {
+      livePhaseNote.textContent =
+        getCurrentPhase() === 'visa-presale'
+          ? 'Visa Presale: only Visa is accepted during the 48-hour priority window.'
+          : 'General release: Visa, Mastercard, M-Pesa and Airtel Money are accepted.';
+    }
+
+    const container =
+      $('checkout-payment-methods');
+
+    if (!container) {
+      return;
+    }
+
+    const accepted =
+      getAcceptedPaymentMethods();
+
+    const phase =
+      getCurrentPhase();
+
+    if (!accepted.length) {
+
+      container.innerHTML = `
+        <div class="payment-method-empty">
+          No payment method is available for this sales phase.
+        </div>
+      `;
+
+      return;
+
+    }
+
+    container.innerHTML =
+      accepted
+        .map(
+          (method, index) => `
+            <label class="payment-method-option">
+              <input
+                type="radio"
+                name="payment-method"
+                value="${escapeHtml(method.id)}"
+                ${index === 0 ? 'checked' : ''}
+              />
+              <span>${escapeHtml(method.name)}</span>
+            </label>
+          `
+        )
+        .join('') +
+      (
+        phase === 'visa-presale'
+          ? `
+            <div class="payment-phase-note">
+              Visa Presale window: only Visa cards are accepted for the exclusive 48-hour priority access.
+            </div>
+          `
+          : `
+            <div class="payment-phase-note">
+              General release: Visa, Mastercard, M-Pesa and Airtel Money are accepted.
+            </div>
+          `
+      );
+
+  }
+
+
+  function getSelectedPaymentMethod() {
+
+    /*
+     * Live page uses selectable M-Pesa/Card buttons plus a phase note.
+     * Map that UI back to an accepted method ID for the phase gate.
+     */
+    const selected =
+      document.querySelector(
+        'input[name="payment-method"]:checked'
+      );
+
+    if (selected) {
+      return String(selected.value || '').toLowerCase();
+    }
+
+    const activeOption =
+      document.querySelector('.payment-option.active');
+
+    const active =
+      activeOption
+        ? String(activeOption.dataset.payment || '').toLowerCase()
+        : '';
+
+    if (active === 'card') {
+      return 'visa';
+    }
+
+    if (active === 'mpesa') {
+      return 'mpesa';
+    }
+
+    const liveBox =
+      $('payment-method-name');
+
+    if (liveBox) {
+
+      const text =
+        liveBox.textContent.toLowerCase();
+
+      if (text.includes('visa')) {
+        return 'visa';
+      }
+
+    }
+
+    const accepted =
+      getAcceptedPaymentMethods();
+
+    return accepted.length
+      ? String(accepted[0].id || '').toLowerCase()
+      : '';
+
+  }
+
+
+  function validatePaymentPhase() {
+
+    const accepted =
+      getAcceptedPaymentMethods().map(
+        method =>
+          String(method.id || '').toLowerCase()
+      );
+
+    const selected =
+      getSelectedPaymentMethod() ||
+      (accepted.length ? accepted[0] : '');
+
+    /*
+     * Phase 1 gate: Mastercard / mobile wallets are rejected
+     * until the Visa presale window closes.
+     */
+    if (!accepted.includes(selected)) {
+
+      if (getCurrentPhase() === 'visa-presale') {
+        notify(
+          'Visa Presale window: please pay with a Visa card. General sales (Mastercard / M-Pesa / Airtel Money) open after the 48-hour priority window.'
+        );
+      } else {
+        notify(
+          'Selected payment method is not available for this sales phase.'
+        );
+      }
+
+      return false;
+
+    }
+
+    return true;
+
+  }
+
+
+  function startCheckoutFlow(fromPayButton) {
+
+    startCheckout();
+
+    if (!fromPayButton) {
+      return;
+    }
+
+    /*
+     * pay-now-btn on the live page means "finalize now": run the
+     * same guards, hold timer, phase gate and digital issuance
+     * as the modal confirm path.
+     */
+    confirmPayment();
+
+  }
+
+
+  /* =========================================================
      CHECKOUT
   ========================================================= */
 
@@ -1347,6 +2222,25 @@
 
       notify(
         'Select at least one ticket.'
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * AFCON RULE: cap the order before Fan ID linking.
+     * One ticket per match per account.
+     */
+
+    if (
+      totalTickets() >
+      maxTicketsPerOrder()
+    ) {
+
+      notify(
+        'CAF limit: 1 ticket per match per Fan ID.'
       );
 
       return;
@@ -1405,6 +2299,10 @@
                     ${line.category.toUpperCase()}
                   </span>
 
+                  <small class="checkout-personalized-note">
+                    Personalized · Non-transferable · Face check at gate
+                  </small>
+
                 </div>
 
 
@@ -1444,6 +2342,11 @@
     }
 
 
+    renderPaymentMethods();
+
+    startCheckoutTimer();
+
+
     const modal =
       $('checkout-modal');
 
@@ -1464,6 +2367,8 @@
 
 
   function closeCheckout() {
+
+    stopCheckoutTimer(true);
 
     const modal =
       $('checkout-modal');
@@ -1502,14 +2407,53 @@
     }
 
 
+    /*
+     * Sales-phase payment gate (Visa presale vs general/final).
+     */
+    if (!validatePaymentPhase()) {
+      return;
+    }
+
+
+    /*
+     * CAF RULE: checkout only starts the 10-minute hold; a live page
+     * without an open hold gets one now so expiry can release seats.
+     */
+    if (
+      !state.checkoutTimerId &&
+      state.checkoutSecondsLeft <= 0
+    ) {
+      startCheckoutTimer();
+    }
+
+
+    /*
+     * Hold-window guard: an expired timer releases the seat.
+     */
+    if (state.checkoutSecondsLeft <= 0) {
+
+      releaseHeldSeats(
+        'Payment window expired (10:00). Your held seat was released. Please pick again.'
+      );
+
+      return;
+
+    }
+
+
     const button =
-      $('confirm-checkout');
+      $('confirm-checkout') ||
+      $('pay-now-btn');
 
 
     if (button) {
 
       button.disabled =
         true;
+
+      if (button.dataset.label === undefined) {
+        button.dataset.label = button.textContent;
+      }
 
       button.textContent =
         'Processing payment…';
@@ -1536,11 +2480,19 @@
             match,
             venue,
             tickets: order,
+            paymentMethod: getSelectedPaymentMethod(),
+            salesPhase: getCurrentPhase(),
+            personalized: true,
+            nonTransferable: true,
+            faceVerificationRequired: true,
             subtotal: totalPrice(),
             serviceFee: serviceFee(),
             total: grandTotal()
           }
         );
+
+
+        stopCheckoutTimer(true);
 
 
         closeCheckout();
@@ -1555,7 +2507,10 @@
             false;
 
           button.textContent =
+            button.dataset.label ||
             'Confirm & Pay';
+
+          delete button.dataset.label;
 
         }
 
@@ -1572,6 +2527,9 @@
 
   function showSuccess() {
 
+    /*
+     * Live success modal IDs first, legacy IDs as fallback.
+     */
     const modal =
       $('success-modal');
 
@@ -1593,28 +2551,19 @@
         .slice(-8)}`;
 
 
-    const orderEl =
-      $('success-order-number');
+    const ticketCount =
+      totalTickets();
 
+    const paidTotal =
+      money(grandTotal());
 
-    if (orderEl) {
-
-      orderEl.textContent =
-        orderNumber;
-
-    }
-
-
-    const countEl =
-      $('success-ticket-count');
-
-
-    if (countEl) {
-
-      countEl.textContent =
-        `${totalTickets()} personalized ticket${totalTickets() === 1 ? '' : 's'}`;
-
-    }
+    setText('success-order-number', orderNumber);
+    setText('success-reference', orderNumber);
+    setText(
+      'success-ticket-count',
+      `${ticketCount} personalized ticket${ticketCount === 1 ? '' : 's'}`
+    );
+    setText('success-total', paidTotal);
 
 
     modal.classList.remove(
@@ -1645,7 +2594,7 @@
     clearTickets;
 
   window.openTicketCheckout =
-    startCheckout;
+    startCheckoutFlow;
 
   window.closeTicketCheckout =
     closeCheckout;
@@ -1666,7 +2615,35 @@
 
       await loadOriginalMap();
 
+      wireStepButtons();
+
+      renderPaymentMethods();
+
       updateAll();
+
+      const closeSuccess =
+        $('close-success-btn');
+
+      if (closeSuccess && !closeSuccess._wired) {
+
+        closeSuccess._wired = true;
+
+        closeSuccess.addEventListener('click', () => {
+
+          const modal =
+            $('success-modal');
+
+          if (modal) {
+
+            modal.classList.add('hidden');
+
+            modal.classList.remove('flex');
+
+          }
+
+        });
+
+      }
 
     }
   );

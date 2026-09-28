@@ -20,20 +20,29 @@ window.TICKETING_DATA = {
 
   rules: {
 
-    /* PAMOJA product rule */
+    /*
+     * AFCON / PAMOJA rule: one ticket per Fan ID per match.
+     * Prevents hoarding and scalping. Buying for friends/family
+     * requires a distinct Fan ID linked at checkout time, and the
+     * name on the ticket must match the Fan ID holder. Secondary
+     * resale / using someone else's ticket is prohibited.
+     */
     minimumTicketsPerOrder: 1,
 
-    /* User-requested maximum */
-    maximumTicketsPerOrder: 6,
+    /* CAF policy: individual account limit, one ticket per match. */
+    maximumTicketsPerOrder: 1,
 
     /*
-     * Every ticket must have one Fan ID.
+     * Every ticket must have one Fan ID linked BEFORE payment.
      * A Fan ID cannot be reused for another ticket
      * in the same match.
      */
     fanIdRequired: true,
 
     uniqueFanIdPerMatch: true,
+
+    /* Tickets are strictly personalized and non-transferable. */
+    nonTransferable: true,
 
     /*
      * Tickets are digital and personalized.
@@ -47,11 +56,54 @@ window.TICKETING_DATA = {
     stadiumSales: false,
 
     /*
+     * PAMOJA Visa-waiver guard: a ticket alone does not confer
+     * travel entry. Face verification at the gate is mandatory,
+     * and failure to verify can invalidate the travel arrangement.
+     */
+    faceVerificationRequired: true,
+
+    /*
      * Refund rule supplied for this product.
      */
     refundPolicy:
       'Refunds are available only when a match is officially cancelled by CAF.'
   },
+
+
+  /* =========================================================
+     SALES PHASES
+     ========================================================= */
+
+  /*
+   * Phase 1 = Visa presale (exclusive 48h priority window).
+   * Phase 2 = General public release (Visa + Mastercard +
+   *           M-Pesa / Airtel Money).
+   * Phase 3 = Final drops (remaining / returned allocations).
+   *
+   * currentPhase controls the checkout payment gate:
+   *   - 'visa-presale'  -> only Visa is accepted
+   *   - 'general'       -> all configured methods accepted
+   *   - 'final'         -> all configured methods accepted
+   *
+   * To open general sales, set currentPhase to 'general'.
+   */
+  salesPhases: {
+    currentPhase: 'general',
+    visaPresaleHours: 48,
+    visaPresaleCapacityShare: 0.3
+  },
+
+
+  /* =========================================================
+     CHECKOUT HOLD TIMER
+     ========================================================= */
+
+  /*
+   * Strict 10-minute payment window. If checkout is not
+   * completed in time, seats are stripped from the cart and
+   * returned to general circulation.
+   */
+  checkoutHoldSeconds: 600,
 
 
   /* =========================================================
@@ -77,8 +129,35 @@ window.TICKETING_DATA = {
       id: 'mastercard',
       name: 'Mastercard',
       enabled: true
+    },
+
+    {
+      id: 'mpesa',
+      name: 'M-Pesa',
+      enabled: true
+    },
+
+    {
+      id: 'airtel',
+      name: 'Airtel Money',
+      enabled: true
     }
 
+  ],
+
+
+  /* =========================================================
+     FAN ID FORMAT
+     ========================================================= */
+
+  /*
+   * Fan ID is mandatory before purchase. Format enforced in
+   * tickets.js via getFanIdPattern():
+   *   PAMOJA-XXXXXX  (legacy)  or  YALLA-XX-20XX-XXXX (current)
+   */
+  fanIdPatternSources: [
+    '^PAMOJA-[A-Z0-9]{6}$',
+    '^YALLA-[A-Z]{2}-\\d{4}-[A-Z0-9]{4}$'
   ],
 
 
