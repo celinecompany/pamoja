@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Estimate travel, match ticket, accommodation, food, and local transport costs for an AFCON PAMOJA trip.">
+  <title>Trip Budget Calculator | AFCON PAMOJA</title>
+  <link rel="stylesheet" href="site-shell.css">
+  <link rel="stylesheet" href="calculator.css">
+  <link rel="icon" type="image/svg+xml" href="img/caf-logo-header.svg">
+</head>
+<body>
+  <nav class="site-public-nav" aria-label="Main navigation">
+    <div class="site-shell-flag-key" aria-label="Host countries">
+      <span class="flag-tz">Tanzania</span><span class="flag-ke">Kenya</span><span class="flag-ug">Uganda</span>
+    </div>
+    <div class="site-public-nav-inner">
+      <a class="site-public-nav-brand" href="index.html"><img src="img/cafonline_onlight_352273665a.svg" alt="CAF Online"><span>AFCON PAMOJA</span></a>
+      <div class="site-public-nav-links">
+        <a href="index.html">Home</a><a href="guide.html">Ticket guide</a><a href="venues.html">Venues</a><a href="faq.html">FAQ</a><a class="nav-ticket-link" href="index.html#matches">Choose a match</a>
+      </div>
+      <button class="site-mobile-menu-trigger" aria-label="Open menu"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <main class="public-page calculator-page">
+    <section class="public-hero calculator-hero">
+      <div class="public-wrap">
+        <p class="public-kicker">East Africa PAMOJA</p>
+        <h1 class="public-title">Build your trip estimate.</h1>
+        <p class="public-lede">Seven choices create a planning range for travel, match tickets, accommodation, food, and local transport.</p>
+      </div>
+    </section>
+
+    <section class="calculator-wrap" id="budget-calculator" aria-label="Trip budget calculator">
+      <div class="calculator-topline">
+        <div class="calculator-progress-copy"><span id="budget-step-label">Step 1 of 7</span><span id="budget-progress-percent">14%</span></div>
+        <div class="calculator-progress" role="progressbar" aria-label="Calculator progress" aria-valuemin="0" aria-valuemax="7" aria-valuenow="1"><span id="budget-progress-fill"></span></div>
+      </div>
+      <div id="budget-question" class="budget-question" aria-live="polite"></div>
+      <div class="calculator-actions"><button type="button" id="budget-back" class="calculator-button secondary" disabled>Back</button><button type="button" id="budget-reset" class="calculator-text-button">Start over</button></div>
+      <section id="budget-result" class="budget-result" hidden aria-live="polite"></section>
+      <p class="calculator-footnote">Planning estimates only. Actual travel, lodging, ticket prices, and entry requirements vary and may change. Ticket prices are provisional benchmark ranges, not official sale prices.</p>
+    </section>
+  </main>
+
+  <footer class="site-shell-footer"><div class="site-shell-footer-inner"><div class="site-shell-footer-bottom"><span>AFCON PAMOJA Ticketing</span><span><a href="guide.html">Ticket guide</a> | <a href="privacy.html">Privacy</a> | <a href="terms.html">Terms</a></span></div></div></footer>
+  <script src="ticketing-data.js"></script>
+  <script src="calculator.js"></script>
+  <script src="header-menu.js"></script>
+</body>
+</html>

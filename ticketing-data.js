@@ -378,24 +378,63 @@ window.getVenuePricing = function(match) {
 };
 
 
-window.getTicketPrice = function(
-  match,
-  tier
-) {
+window.PAMOJA_CURRENCIES = {
+  USD: { label: 'US Dollar', perUsd: 1 },
+  KES: { label: 'Kenyan Shilling', perUsd: 129.68 },
+  TZS: { label: 'Tanzanian Shilling', perUsd: 2642.54 },
+  UGX: { label: 'Ugandan Shilling', perUsd: 3947.48 }
+};
 
-  const pricing =
-    window.getVenuePricing(match);
 
-  return Number(
-    pricing[tier] || 0
-  );
+window.getDisplayCurrency = function() {
+  const selected = localStorage.getItem('pamoja_display_currency') || 'KES';
+  return window.PAMOJA_CURRENCIES[selected] ? selected : 'KES';
+};
+
+
+window.convertKes = function(value, currency = window.getDisplayCurrency()) {
+  const amountKes = Number(value || 0);
+  const rate = window.PAMOJA_CURRENCIES[currency]?.perUsd;
+  const kesPerUsd = window.PAMOJA_CURRENCIES.KES.perUsd;
+  return Number.isFinite(rate) ? amountKes / kesPerUsd * rate : amountKes;
+};
+
+
+window.getMatchPricing = function(match) {
+  const venuePricing = window.getVenuePricing(match);
+  try {
+    const matchPricing = JSON.parse(localStorage.getItem('pamoja_match_pricing') || '{}');
+    return { ...venuePricing, ...(matchPricing[match.id] || {}) };
+  } catch (error) {
+    return venuePricing;
+  }
+};
+
+
+window.getUnavailableSections = function(matchId) {
+  try {
+    const inventory = JSON.parse(localStorage.getItem('pamoja_match_unavailable_sections') || '{}');
+    return new Set(inventory[matchId] || []);
+  } catch (error) {
+    return new Set();
+  }
+};
+
+
+window.getTicketPrice = function(match, tier) {
+  const pricing = window.getMatchPricing(match);
+  return Number(pricing[tier] || 0);
 
 };
 
 
 window.money = function(value) {
-
-  return `KES ${Number(value || 0)
-    .toLocaleString('en-KE')}`;
+  const currency = window.getDisplayCurrency();
+  const amount = window.convertKes(value, currency);
+  const digits = currency === 'USD' ? 2 : 0;
+  return `${currency} ${amount.toLocaleString('en', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits
+  })}`;
 
 };

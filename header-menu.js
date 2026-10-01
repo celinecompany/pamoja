@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.site-public-nav').forEach((nav) => {
+  document.querySelectorAll('.site-public-nav').forEach((nav, index) => {
     const inner = nav.querySelector('.site-public-nav-inner');
     const links = nav.querySelector('.site-public-nav-links');
     if (!inner || !links) return;
@@ -13,14 +13,18 @@ document.addEventListener('DOMContentLoaded', () => {
       nav.insertBefore(flags, inner);
     }
 
-    const menuId = `mobile-menu-${Math.random().toString(36).slice(2)}`;
-    const trigger = document.createElement('button');
-    trigger.className = 'site-mobile-menu-trigger';
-    trigger.type = 'button';
+    const menuId = `mobile-menu-${index + 1}`;
+    let trigger = inner.querySelector('.site-mobile-menu-trigger');
+    if (!trigger) {
+      trigger = document.createElement('button');
+      trigger.className = 'site-mobile-menu-trigger';
+      trigger.type = 'button';
+      trigger.innerHTML = '<span></span><span></span><span></span>';
+      inner.appendChild(trigger);
+    }
     trigger.setAttribute('aria-controls', menuId);
     trigger.setAttribute('aria-expanded', 'false');
     trigger.setAttribute('aria-label', 'Open navigation menu');
-    trigger.innerHTML = '<span></span><span></span><span></span>';
 
     const backdrop = document.createElement('button');
     backdrop.className = 'site-mobile-menu-backdrop';
@@ -31,6 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
     drawer.className = 'site-mobile-menu-drawer';
     drawer.id = menuId;
     drawer.setAttribute('aria-label', 'Mobile navigation');
+    drawer.setAttribute('role', 'dialog');
+    drawer.setAttribute('aria-modal', 'true');
+    drawer.setAttribute('aria-hidden', 'true');
+    drawer.inert = true;
     drawer.innerHTML = '<div class="site-mobile-menu-heading"><span>AFCON PAMOJA 2026</span><button type="button" aria-label="Close navigation menu">&times;</button></div>';
     const drawerLinks = links.cloneNode(true);
     drawerLinks.classList.add('site-mobile-menu-links');
@@ -40,11 +48,17 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.classList.remove('mobile-menu-open');
       trigger.setAttribute('aria-expanded', 'false');
       drawer.style.transform = 'translateX(105%)';
+      drawer.setAttribute('aria-hidden', 'true');
+      drawer.inert = true;
+      trigger.focus();
     };
     const openMenu = () => {
       document.body.classList.add('mobile-menu-open');
       trigger.setAttribute('aria-expanded', 'true');
       drawer.style.transform = 'none';
+      drawer.setAttribute('aria-hidden', 'false');
+      drawer.inert = false;
+      drawer.querySelector('button').focus();
     };
 
     trigger.addEventListener('click', openMenu);
@@ -52,7 +66,13 @@ document.addEventListener('DOMContentLoaded', () => {
     drawer.querySelector('button').addEventListener('click', closeMenu);
     drawer.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
 
-    inner.appendChild(trigger);
     document.body.append(backdrop, drawer);
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && trigger.getAttribute('aria-expanded') === 'true') {
+        closeMenu();
+        trigger.focus();
+      }
+    });
   });
 });

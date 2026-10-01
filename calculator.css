@@ -1,0 +1,50 @@
+.calculator-page { background: #f1f4ef; }
+.calculator-hero { color: #fff; background: #17271d; }
+.calculator-hero::after { color: rgba(245, 196, 0, .13); }
+.calculator-hero .public-kicker { color: #f5c400; }
+.calculator-wrap { width: min(940px, calc(100% - 2rem)); margin: 2rem auto 4rem; padding: clamp(1.1rem, 3vw, 2.25rem); background: #fff; border: 1px solid #d7dfd6; box-shadow: 0 14px 34px rgba(23, 39, 29, .08); }
+.calculator-topline { display: grid; gap: .5rem; }
+.calculator-progress-copy { display: flex; justify-content: space-between; color: #59655c; font-size: .75rem; font-weight: 800; }
+.calculator-progress { height: .4rem; overflow: hidden; background: #e4e9e3; }
+.calculator-progress span { display: block; width: 14.285%; height: 100%; background: linear-gradient(90deg, #a00000 0 38%, #079447 38% 78%, #f5c400 78%); transition: width .25s ease; }
+.budget-question { min-height: 19rem; padding: 2rem 0 1rem; }
+.budget-question h2 { margin: 0 0 .55rem; color: #17271d; font: 700 1.7rem Georgia, serif; }
+.budget-question > p { margin: 0 0 1.5rem; color: #657168; line-height: 1.6; }
+.budget-option-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+.budget-option { min-height: 3.2rem; padding: .8rem 1rem; color: #26382c; background: #f9fbf8; border: 1px solid #ccd8ce; text-align: left; font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; transition: border-color .15s ease, background .15s ease, transform .15s ease; }
+.budget-option:hover { transform: translateY(-1px); border-color: #079447; background: #eef6ef; }
+.budget-option[aria-pressed="true"] { color: #fff; background: #075b34; border-color: #075b34; }
+.calculator-actions { display: flex; align-items: center; gap: .75rem; padding-top: 1rem; border-top: 1px solid #e3e9e3; }
+.calculator-button { min-height: 2.7rem; padding: .65rem 1rem; border: 1px solid #075b34; color: #fff; background: #075b34; font: inherit; font-size: .82rem; font-weight: 800; cursor: pointer; }
+.calculator-button:disabled { color: #818b82; background: #edf0ec; border-color: #d9dfd8; cursor: not-allowed; }
+.calculator-button.secondary { color: #35433a; background: #fff; border-color: #cdd8cf; }
+.calculator-text-button { margin-left: auto; padding: .5rem; color: #a00000; background: transparent; border: 0; font: inherit; font-size: .8rem; font-weight: 800; cursor: pointer; }
+.calculator-footnote { margin: 1.25rem 0 0; color: #69736b; font-size: .76rem; line-height: 1.6; }
+.budget-result { margin-top: 1.5rem; border-top: 4px solid #a00000; }
+.budget-result-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 1rem; padding: 1.25rem 0; border-bottom: 1px solid #dce6dd; }
+.budget-result-head h2 { margin: 0; color: #17271d; font: 700 1.7rem Georgia, serif; }
+.budget-result-head p { margin: .35rem 0 0; color: #657168; font-size: .85rem; }
+.budget-currency { display: grid; gap: .35rem; color: #59655c; font-size: .72rem; font-weight: 800; }
+.budget-currency select { min-height: 2.5rem; padding: .5rem .65rem; color: #26382c; background: #fff; border: 1px solid #cdd8cf; font: inherit; }
+.budget-total { display: grid; grid-template-columns: 1fr auto; gap: .5rem 1rem; padding: 1.25rem 0; color: #17271d; }
+.budget-total strong { font: 700 1.5rem Georgia, serif; }
+.budget-total small { grid-column: 1 / -1; color: #657168; }
+.budget-breakdown { display: grid; }
+.budget-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .7rem; padding: .75rem 0; border-top: 1px solid #e5ebe4; color: #46534a; font-size: .87rem; }
+.budget-row strong { color: #17271d; font-variant-numeric: tabular-nums; }
+.budget-note { margin: 1.25rem 0; padding: .9rem 1rem; color: #535e55; background: #f4f6f2; border-left: 3px solid #f5c400; font-size: .78rem; line-height: 1.6; }
+.budget-result-links { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1rem; }
+.budget-result-links a { padding: .65rem .8rem; color: #075b34; background: #eef6ef; border: 1px solid #cfe1d1; font-size: .78rem; font-weight: 800; text-decoration: none; }
+.site-shell-footer-bottom a { color: #fff; }
+
+@media (max-width: 600px) {
+  .budget-question { min-height: 22rem; padding-top: 1.5rem; }
+  .budget-option-grid { grid-template-columns: 1fr; }
+  .budget-result-head h2 { font-size: 1.45rem; }
+  .budget-total strong { font-size: 1.25rem; }
+  .budget-row { grid-template-columns: minmax(0, 1fr) auto; font-size: .78rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .budget-option, .calculator-progress span { transition: none; }
+}

@@ -319,6 +319,9 @@
       overflow: visible;
     }
 
+    #stadium-interactive-svg text,
+    #stadium-interactive-svg tspan { pointer-events: none; }
+
     #stadium-interactive-svg path {
       cursor: pointer;
 
@@ -351,6 +354,12 @@
       stroke: #6ee7b7 !important;
       stroke-width: 3px !important;
       opacity: 1 !important;
+    }
+
+    #stadium-interactive-svg path.svg-seat-unavailable {
+      cursor: not-allowed !important;
+      opacity: .3 !important;
+      filter: grayscale(1) !important;
     }
 
     #stadium-interactive-svg [id="Layer_1"] path:not(.svg-seat-selected) {
@@ -403,6 +412,23 @@
         transform: rotate(360deg);
       }
     }
+
+    #toast-notification {
+      position: fixed;
+      z-index: 100;
+      right: 1rem;
+      bottom: 1rem;
+      max-width: calc(100% - 2rem);
+      padding: .8rem 1rem;
+      color: #fff;
+      background: #17271d;
+      border: 1px solid #079447;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      transition: opacity .2s ease, transform .2s ease;
+    }
+
+    #toast-notification.opacity-0 { opacity: 0; }
+    #toast-notification.translate-y-6 { transform: translateY(1.5rem); }
 
 
     /* =========================================================
@@ -846,7 +872,7 @@
             </div>
 
 
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2">
 
               <button
                 type="button"
@@ -868,6 +894,18 @@
 
           </div>
 
+        </div>
+
+
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2.5">
+          <label for="display-currency" class="text-xs font-semibold text-slate-200">Display prices in</label>
+          <select id="display-currency" class="glass-input rounded-lg px-3 py-2 text-xs font-semibold text-white" aria-label="Choose ticket display currency">
+            <option value="KES">KES - Kenyan Shilling</option>
+            <option value="USD">USD - US Dollar</option>
+            <option value="TZS">TZS - Tanzanian Shilling</option>
+            <option value="UGX">UGX - Ugandan Shilling</option>
+          </select>
+          <span class="text-[10px] text-slate-400">Converted from KES at fixed planning rates; checkout remains KES.</span>
         </div>
 
 
@@ -1867,6 +1905,10 @@
   <!-- =========================================================
        EXISTING PROJECT DATA / LOGIC
   ========================================================= -->
+
+  <div id="toast-notification" class="opacity-0 translate-y-6" role="status" aria-live="polite" aria-atomic="true">
+    <span id="toast-message"></span>
+  </div>
 
   <script src="ticketing-data.js"></script>
   <script src="tickets.js"></script>

@@ -1,0 +1,20 @@
+.guide-primary { margin-top: 1.5rem; }
+.guide-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, .8fr); gap: 2rem; align-items: start; }
+.guide-steps { display: grid; gap: 0; }
+.guide-step { display: grid; grid-template-columns: 3.25rem 1fr; gap: 1rem; padding: 1.5rem 0; border-bottom: 1px solid #dce6dd; }
+.guide-step > span { color: #a00000; font: 700 1.1rem Georgia, serif; }
+.guide-step h2, .guide-notice h2 { margin: 0 0 .5rem; color: #17271d; font-size: 1.2rem; }
+.guide-step p, .guide-notice p, .guide-notice li { margin: 0; color: #59655c; line-height: 1.7; }
+.guide-notes { display: grid; gap: 1rem; }
+.guide-notice { padding: 1.25rem; background: #fff; border: 1px solid #dce6dd; }
+.guide-visa { border-top: 4px solid #a00000; }
+.guide-notice .public-kicker { margin-top: 0; }
+.guide-notice a { display: inline-block; margin-top: 1rem; color: #075b34; font-weight: 800; }
+.guide-notice ul { display: grid; gap: .55rem; margin: 0; padding-left: 1.1rem; }
+.guide-prototype-note { margin: 0; color: #59655c; font-size: .78rem; line-height: 1.6; }
+.site-shell-footer-bottom a { color: #fff; }
+
+@media (max-width: 780px) {
+  .guide-layout { grid-template-columns: 1fr; }
+  .guide-step { grid-template-columns: 2.5rem 1fr; gap: .7rem; }
+}

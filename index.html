@@ -141,14 +141,10 @@
       position: relative;
       overflow: hidden;
 
-      background:
-        linear-gradient(
-          145deg,
-          rgba(15, 23, 42, 0.96),
-          rgba(11, 17, 32, 0.94)
-        );
+      color: #20242b;
+      background: #ffffff;
 
-      border: 1px solid rgba(51, 65, 85, 0.85);
+      border: 1px solid #dce6dd;
       transition:
         transform 220ms ease,
         border-color 220ms ease,
@@ -163,7 +159,7 @@
       background:
         radial-gradient(
           circle at 100% 0%,
-          rgba(245,158,11,0.10),
+          rgba(245,158,11,0.08),
           transparent 30%
         );
 
@@ -173,11 +169,11 @@
     .match-card:hover {
       transform: translateY(-5px);
 
-      border-color: rgba(245,158,11,0.55);
+      border-color: rgba(7,148,71,0.45);
 
       box-shadow:
-        0 24px 70px rgba(0,0,0,0.35),
-        0 0 30px rgba(245,158,11,0.07);
+        0 18px 42px rgba(39,74,46,0.12),
+        0 0 24px rgba(7,148,71,0.05);
     }
 
     .match-card-inner {
@@ -186,8 +182,8 @@
     }
 
     .match-date-box {
-      background: rgba(2, 6, 23, 0.75);
-      border: 1px solid rgba(51, 65, 85, 0.75);
+      background: #f5f8f5;
+      border: 1px solid #dce6dd;
     }
 
     .team-badge {
@@ -200,18 +196,13 @@
 
       border-radius: 22px;
 
-      background:
-        linear-gradient(
-          145deg,
-          rgba(30,41,59,0.95),
-          rgba(15,23,42,0.95)
-        );
+      background: #edf4ef;
 
-      border: 1px solid rgba(148,163,184,0.16);
+      border: 1px solid #dce6dd;
 
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.05),
-        0 12px 25px rgba(0,0,0,0.22);
+        inset 0 1px 0 rgba(255,255,255,0.8),
+        0 8px 18px rgba(39,74,46,0.08);
     }
 
     .team-flag {
@@ -253,22 +244,73 @@
     ========================================================= */
 
     .availability-high {
-      color: #fbbf24;
-      background: rgba(245,158,11,0.09);
-      border-color: rgba(245,158,11,0.24);
+      color: #835500;
+      background: #fff5db;
+      border-color: #f0d58f;
     }
 
     .availability-limited {
-      color: #fb923c;
-      background: rgba(249,115,22,0.09);
-      border-color: rgba(249,115,22,0.24);
+      color: #963b12;
+      background: #fff0e8;
+      border-color: #efc1a9;
     }
 
     .availability-fast {
-      color: #34d399;
-      background: rgba(16,185,129,0.09);
-      border-color: rgba(16,185,129,0.24);
+      color: #087443;
+      background: #e7f5ec;
+      border-color: #b9dfc7;
     }
+
+    .match-card .text-white { color: #202a23; }
+    .match-card .text-slate-200 { color: #35433a; }
+    .match-card .text-slate-300 { color: #4c5a50; }
+    .match-card .text-slate-400,
+    .match-card .text-slate-500 { color: #657168; }
+    .match-card .text-amber-400 { color: #925900; }
+    .match-card [class*="bg-slate-950"],
+    .match-card [class*="bg-slate-900"] { background: #f3f6f3; }
+    .match-card [class*="border-slate-"] { border-color: #dce6dd; }
+    #matches > div:first-child h2 { color: #17271d; }
+    #matches > div:first-child p,
+    #matches > div:first-child > div:last-child { color: #59655c; }
+    #matches .filter-button {
+      color: #35433a;
+      background: #fff;
+      border-color: #cdd8cf;
+    }
+    #matches .filter-button:hover { color: #17271d; }
+    #matches .filter-button.active {
+      color: #17271d;
+      background: #f5c400;
+      border-color: #d8ad00;
+    }
+    #matches .empty-state { background: #fff; border-color: #cdd8cf; }
+    #matches .empty-state h3 { color: #17271d; }
+
+    .home-resource-links {
+      background: #f4f7f3;
+      border-block: 1px solid #dce6dd;
+    }
+
+    .home-resource-card {
+      display: block;
+      min-height: 100%;
+      padding: 1.25rem;
+      color: #202a23;
+      background: #fff;
+      border: 1px solid #dce6dd;
+      text-decoration: none;
+      transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .home-resource-card:hover {
+      transform: translateY(-2px);
+      border-color: #079447;
+      box-shadow: 0 10px 24px rgba(39,74,46,0.1);
+    }
+
+    .home-resource-card strong { display: block; color: #075b34; }
+    .home-resource-card span { display: block; margin-top: .4rem; color: #59655c; font-size: .88rem; line-height: 1.5; }
 
     /* =========================================================
        Filters
@@ -507,64 +549,25 @@
 
         <!-- Hero stats -->
 
-        <div
-          class="max-w-4xl mx-auto grid grid-cols-3 gap-2 sm:gap-4 mt-12"
-        >
 
-          <div
-            class="rounded-2xl border border-slate-800/90 bg-slate-950/60 backdrop-blur-sm px-3 py-4 sm:px-5 sm:py-5 text-center"
-          >
-            <div
-              id="hero-match-count"
-              class="font-display font-black text-xl sm:text-2xl text-white"
-            >
-              3
-            </div>
-
-            <div
-              class="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-500 mt-1"
-            >
-              Matches
-            </div>
-          </div>
+      </div>
+    </section>
 
 
-          <div
-            class="rounded-2xl border border-slate-800/90 bg-slate-950/60 backdrop-blur-sm px-3 py-4 sm:px-5 sm:py-5 text-center"
-          >
-            <div
-              id="hero-venue-count"
-              class="font-display font-black text-xl sm:text-2xl text-white"
-            >
-              3
-            </div>
-
-            <div
-              class="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-500 mt-1"
-            >
-              Stadiums
-            </div>
-          </div>
-
-
-          <div
-            class="rounded-2xl border border-slate-800/90 bg-slate-950/60 backdrop-blur-sm px-3 py-4 sm:px-5 sm:py-5 text-center"
-          >
-            <div
-              class="font-display font-black text-xl sm:text-2xl text-amber-400"
-            >
-              KES
-            </div>
-
-            <div
-              class="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-500 mt-1"
-            >
-              Local pricing
-            </div>
-          </div>
-
-        </div>
-
+    <section class="home-resource-links" aria-label="Plan your visit">
+      <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3 px-5 sm:px-8 lg:px-10 py-6">
+        <a class="home-resource-card" href="guide.html">
+          <strong>Ticket purchase guide</strong>
+          <span>See how match selection, Fan ID, payment, and entry checks work.</span>
+        </a>
+        <a class="home-resource-card" href="calculator.html">
+          <strong>Plan your trip budget</strong>
+          <span>Build an estimate for travel, accommodation, match tickets, and local costs.</span>
+        </a>
+        <a class="home-resource-card" href="venues.html#venue-map">
+          <strong>Explore host venues</strong>
+          <span>Browse stadium information across Kenya, Tanzania, and Uganda.</span>
+        </a>
       </div>
     </section>
 

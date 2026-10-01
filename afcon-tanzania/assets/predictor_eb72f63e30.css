@@ -1,0 +1,145 @@
+/* AFCON 2027 Predictor v2.0.0 — 24 teams · 12 qualifying groups — afcontanzaniaguide.com */
+:root {
+  --ap-green: #1B5E20;
+  --ap-green-mid: #2E7D32;
+  --ap-green-light: #EAF3DE;
+  --ap-gold: #FFD54F;
+  --ap-gold-dark: #F9A825;
+  --ap-white: #ffffff;
+  --ap-border: #E0E0E0;
+  --ap-text: #1a1a1a;
+  --ap-muted: #666;
+  --ap-radius: 8px;
+  --ap-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.afcon-pred {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--ap-text);
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 16px 40px;
+}
+
+/* Hero */
+.afcon-pred__hero {
+  background: linear-gradient(135deg, var(--ap-green) 0%, var(--ap-green-mid) 100%);
+  border-radius: 12px;
+  padding: 28px 24px 24px;
+  text-align: center;
+  margin-bottom: 20px;
+  color: var(--ap-white);
+}
+.afcon-pred__flag-row { font-size: 22px; letter-spacing: 3px; margin-bottom: 10px; display: block; }
+.afcon-pred__title { font-size: clamp(20px, 4vw, 30px); font-weight: 700; margin: 0 0 8px; color: var(--ap-white) !important; }
+.afcon-pred__sub { font-size: 14px; opacity: 0.85; margin: 0 0 10px; max-width: 520px; margin-left: auto; margin-right: auto; }
+.afcon-pred__format-note { font-size: 12px; background: rgba(255,255,255,0.15); border-radius: 20px; padding: 5px 14px; display: inline-block; opacity: 0.9; }
+
+/* Progress */
+.afcon-pred__progress { height: 4px; background: var(--ap-border); border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
+.afcon-pred__progress-fill { height: 100%; background: var(--ap-green); border-radius: 2px; transition: width 0.4s ease; }
+
+/* Step label */
+.afcon-pred__step-label { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 14px; font-weight: 700; color: var(--ap-green); text-transform: uppercase; letter-spacing: 0.5px; }
+.afcon-pred__step-num { background: var(--ap-green); color: var(--ap-white); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.afcon-pred__step-note { font-size: 12px; color: var(--ap-muted); margin: 0 0 16px; font-style: italic; }
+
+/* Section */
+.afcon-pred__section { margin-bottom: 32px; }
+.afcon-pred__section--hidden { display: none; }
+
+/* Groups grid */
+.afcon-pred__groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.afcon-pred__groups--host {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  margin-top: 12px;
+}
+
+/* Group card */
+.afcon-pred__group { background: var(--ap-white); border: 1px solid var(--ap-border); border-radius: var(--ap-radius); overflow: hidden; box-shadow: var(--ap-shadow); }
+.afcon-pred__group--host { border: 2px solid var(--ap-gold-dark); }
+.afcon-pred__group-header { background: var(--ap-green); color: var(--ap-white); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 6px 12px; }
+.afcon-pred__group--host .afcon-pred__group-header { background: var(--ap-gold-dark); color: #1a1a1a; }
+.afcon-pred__team { display: flex; align-items: center; gap: 8px; padding: 7px 12px; cursor: pointer; transition: background 0.15s; font-size: 13px; border-left: 3px solid transparent; user-select: none; }
+.afcon-pred__team:hover { background: #f5f5f5; }
+.afcon-pred__team.selected { background: var(--ap-green-light); border-left-color: var(--ap-green); font-weight: 600; }
+.afcon-pred__team.selected .afcon-pred__team-check { opacity: 1; }
+.afcon-pred__team.host-auto { background: #FFF8E1; border-left: 3px solid var(--ap-gold-dark); cursor: default; pointer-events: none; font-weight: 600; }
+.afcon-pred__team-flag { font-size: 17px; width: 22px; text-align: center; }
+.afcon-pred__team-name { flex: 1; }
+.afcon-pred__team-check { opacity: 0; font-size: 13px; color: var(--ap-green); transition: opacity 0.15s; }
+.afcon-pred__team-badge { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; background: var(--ap-gold-dark); color: #1a1a1a; padding: 2px 6px; border-radius: 3px; font-weight: 700; }
+.afcon-pred__group-count { font-size: 10px; color: var(--ap-muted); padding: 3px 12px 8px; text-align: right; }
+.afcon-pred__group-count.complete { color: var(--ap-green); font-weight: 600; }
+
+/* Button */
+.afcon-pred__btn { display: inline-block; background: var(--ap-green); color: var(--ap-white); border: none; border-radius: var(--ap-radius); padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s, opacity 0.15s; margin-top: 8px; }
+.afcon-pred__btn:hover:not(:disabled) { background: var(--ap-green-mid); }
+.afcon-pred__btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Result card */
+.afcon-pred__result { background: var(--ap-white); border: 2px solid var(--ap-gold-dark); border-radius: 12px; padding: 32px 24px; text-align: center; box-shadow: 0 4px 20px rgba(249,168,37,0.15); max-width: 720px; margin: 0 auto; }
+.afcon-pred__result-trophy { font-size: 48px; display: block; margin-bottom: 8px; }
+.afcon-pred__result-label { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--ap-muted); margin: 0 0 16px; font-weight: 700; }
+
+/* Qualifiers list */
+.afcon-pred__qualifiers-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 6px;
+  margin: 12px 0 24px;
+  text-align: left;
+}
+.afcon-pred__qualifier { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--ap-green-light); border-radius: var(--ap-radius); font-size: 12px; }
+.afcon-pred__qualifier--host { background: #FFF8E1; border: 1px solid var(--ap-gold-dark); }
+.afcon-pred__qualifier-flag { font-size: 16px; width: 20px; text-align: center; }
+.afcon-pred__qualifier-name { flex: 1; font-weight: 600; }
+.afcon-pred__qualifier-tag { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ap-muted); background: var(--ap-white); padding: 2px 5px; border-radius: 3px; font-weight: 700; }
+
+/* Bonus tournament winner picker */
+.afcon-pred__bonus { border-top: 1px solid var(--ap-border); padding-top: 20px; margin-top: 20px; }
+.afcon-pred__bonus-label { font-size: 14px; font-weight: 700; color: var(--ap-green); margin: 0 0 4px; }
+.afcon-pred__bonus-note { font-size: 11px; color: var(--ap-muted); margin: 0 0 12px; font-style: italic; }
+.afcon-pred__winner-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 4px;
+  margin-bottom: 12px;
+  text-align: left;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 8px;
+  background: #fafafa;
+  border-radius: var(--ap-radius);
+}
+.afcon-pred__winner-picker .afcon-pred__team { background: var(--ap-white); border-radius: 6px; border-left-width: 3px; padding: 6px 10px; font-size: 11px; }
+.afcon-pred__winner-picker .afcon-pred__team.selected { background: #FFF8E1; border-left-color: var(--ap-gold-dark); }
+.afcon-pred__winner-picker .afcon-pred__team.selected .afcon-pred__team-check { opacity: 1; color: var(--ap-gold-dark); }
+
+/* Champion reveal */
+.afcon-pred__champion-reveal { margin: 16px 0; padding: 16px; background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%); border-radius: var(--ap-radius); border: 2px solid var(--ap-gold-dark); }
+.afcon-pred__champion-reveal--hidden { display: none; }
+.afcon-pred__champion-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--ap-muted); margin: 0 0 6px; font-weight: 700; }
+.afcon-pred__champion-name { font-size: clamp(20px, 4vw, 28px); font-weight: 700; color: var(--ap-green); margin: 0; }
+
+/* Share/Reset */
+.afcon-pred__share-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 20px 0 12px; }
+.afcon-pred__share-btn { background: var(--ap-green); color: var(--ap-white); border: none; border-radius: var(--ap-radius); padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.afcon-pred__share-btn:hover { background: var(--ap-green-mid); }
+.afcon-pred__share-btn--copy { background: var(--ap-white); color: var(--ap-green); border: 2px solid var(--ap-green); }
+.afcon-pred__share-btn--copy:hover { background: var(--ap-green-light); }
+.afcon-pred__reset { background: none; border: none; color: var(--ap-muted); font-size: 12px; cursor: pointer; text-decoration: underline; padding: 4px; }
+
+@media (max-width: 480px) {
+  .afcon-pred__hero { padding: 20px 14px; }
+  .afcon-pred__groups { grid-template-columns: 1fr; }
+  .afcon-pred__groups--host { grid-template-columns: 1fr; }
+  .afcon-pred__result { padding: 24px 14px; }
+  .afcon-pred__qualifiers-list { grid-template-columns: 1fr; }
+  .afcon-pred__winner-picker { grid-template-columns: repeat(2, 1fr); }
+}

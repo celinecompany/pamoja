@@ -6,6 +6,8 @@
   <meta name="description" content="Official AFCON PAMOJA 2027 tournament stadium venues across Kenya, Tanzania, and Uganda.">
   <title>Host Stadiums & Venues | AFCON PAMOJA 2027</title>
   <link rel="stylesheet" href="site-shell.css">
+  <link rel="stylesheet" href="venue-map.css">
+  <link rel="stylesheet" href="leaflet-1.9.4.css">
   <link rel="icon" type="image/svg+xml" href="img/caf-logo-header.svg">
 </head>
 <body>
@@ -61,14 +63,32 @@
       <div class="public-wrap">
         <p class="public-kicker">Host Cities & Arenas</p>
         <h1 class="public-title">World-Class Stadiums. One East African Spirit.</h1>
-        <p class="public-lede">Explore the 10 iconic tournament venues across Kenya, Tanzania, and Uganda engineered for safety, seamless transit, and unforgettable atmosphere.</p>
+        <p class="public-lede">Explore the tournament venues listed for Kenya, Tanzania, and Uganda, then open a map location or directions link.</p>
         <div class="public-stat-grid">
-          <div class="public-stat"><strong>10</strong><span>Stadiums</span></div>
+          <div class="public-stat"><strong>9</strong><span>Listed venues</span></div>
           <div class="public-stat"><strong>60,000</strong><span>Max Capacity</span></div>
           <div class="public-stat"><strong>3</strong><span>Host Nations</span></div>
-          <div class="public-stat"><strong>100%</strong><span>Digital Entry</span></div>
+          <div class="public-stat"><strong>3</strong><span>Country filters</span></div>
         </div>
       </div>
+    </section>
+
+    <section class="public-wrap venue-explorer" id="venue-map" aria-labelledby="venue-map-title">
+      <p class="public-kicker">Venue locator</p>
+      <h2 id="venue-map-title">Find a host stadium.</h2>
+      <p class="venue-map-intro">Filter by country, select a venue for details, and open directions in your map app. Map pins are approximate references; confirm the official stadium location and entry route before travel.</p>
+      <div class="venue-map-filters" role="group" aria-label="Filter venues by host country">
+        <button type="button" data-venue-country="all" aria-pressed="true">All venues</button>
+        <button type="button" data-venue-country="KE" aria-pressed="false">Kenya</button>
+        <button type="button" data-venue-country="TZ" aria-pressed="false">Tanzania</button>
+        <button type="button" data-venue-country="UG" aria-pressed="false">Uganda</button>
+      </div>
+      <div class="venue-map-layout">
+        <div class="venue-list" id="venue-list" aria-label="Host venues"></div>
+        <div class="venue-map-canvas" id="venue-leaflet-map" role="application" aria-label="Interactive map of host stadium locations"></div>
+      </div>
+      <div class="venue-detail-panel" id="venue-detail-panel" aria-live="polite">Select a venue from the list or map to view its details.</div>
+      <p class="venue-map-attribution">Map tiles by OpenStreetMap contributors. Map display requires an internet connection.</p>
     </section>
 
     <section class="public-wrap">
@@ -161,6 +181,8 @@
       </div>
     </div>
   </footer>
+  <script src="leaflet-1.9.4.js"></script>
+  <script src="venue-map.js"></script>
   <script src="header-menu.js"></script>
 </body>
 </html>

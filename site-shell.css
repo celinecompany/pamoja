@@ -475,3 +475,15 @@ body > main.public-page .text-slate-500 {
   .public-timeline-item { grid-template-columns: 1fr; gap: .35rem; }
 }
 
+@media (max-width: 780px) {
+  .site-mobile-menu-drawer {
+    visibility: hidden;
+    transition: transform .24s ease, visibility 0s linear .24s;
+  }
+
+  .mobile-menu-open .site-mobile-menu-drawer {
+    visibility: visible;
+    transition: transform .24s ease;
+  }
+}
+

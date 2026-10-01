@@ -19,6 +19,10 @@
     .panel { background: rgba(10, 24, 31, .88); border: 1px solid rgba(148, 163, 184, .16); backdrop-filter: blur(14px); }
     .input { background: rgba(2, 8, 23, .65); border: 1px solid #243441; }
     .input:focus { outline: 2px solid rgba(245, 158, 11, .35); border-color: #f59e0b; }
+    #admin-stadium-map svg { display: block; width: 100%; height: auto; }
+    #admin-stadium-map text, #admin-stadium-map tspan { pointer-events: none; }
+    #admin-stadium-map .admin-section-unavailable { opacity: .3; filter: grayscale(1); }
+    #admin-stadium-map path:hover { filter: brightness(1.35); stroke: #fff !important; stroke-width: 2px !important; }
   </style>
 </head>
 <body class="min-h-screen font-sans text-slate-200">
@@ -29,10 +33,10 @@
         <a href="index.html" class="flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20">
           <span>← Back to Ticketing Portal</span>
         </a>
-        <span class="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-mono text-emerald-400 border border-emerald-500/30">● Realtime Sync Active</span>
+        <span class="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-mono text-emerald-400 border border-emerald-500/30">● Browser-local demo only</span>
       </div>
       <div class="text-xs font-mono text-slate-400">
-        Database: <span id="db-mode-indicator" class="text-amber-400 font-semibold">Local Ledger / Supabase Ready</span>
+        Mode: <span id="db-mode-indicator" class="text-amber-400 font-semibold">Not production-secure</span>
       </div>
     </div>
 
@@ -70,6 +74,7 @@
   </main>
   <div id="notice" class="fixed bottom-5 right-5 hidden rounded-xl border border-emerald-500/40 bg-emerald-950/90 px-4 py-3 text-xs text-emerald-200 shadow-2xl"></div>
 
+  <script src="ticketing-data.js"></script>
   <script>
     const DEFAULT_BOOKINGS = [
       { fan: 'Kipchumba J. Kiprop', id: 'YALLA-KE-2027-98124A', seat: 'Kasarani / Cat 1 - Row B #04', amount: 5000, status: 'Paid', paymentMethod: 'M-Pesa' },
@@ -87,30 +92,129 @@
     };
 
     let bookings = [];
+    let activeMatchId = window.TICKETING_DATA.matches[0].id;
+    let adminMapSvg = null;
 
-    // Supabase configurations (ready for production)
-    const SUPABASE_CONFIG = {
-      url: 'https://YOUR_SUPABASE_PROJECT.supabase.co',
-      anonKey: 'YOUR_ANON_KEY',
-      isConfigured: false
-    };
+    function pricingForMatch(matchId = activeMatchId) {
+      const match = window.getMatch(matchId);
+      const venuePricing = window.getVenuePricing(match);
+      try {
+        const allPricing = JSON.parse(localStorage.getItem('pamoja_match_pricing') || '{}');
+        return { ...venuePricing, ...(allPricing[matchId] || {}) };
+      } catch (e) {
+        return venuePricing;
+      }
+    }
+
+    function initializeMatchControls() {
+      const pricingSection = document.getElementById('price-vvip').closest('section');
+      const pricingGrid = pricingSection.querySelector('.mt-5.grid');
+      const matchControl = document.createElement('label');
+      matchControl.className = 'mt-5 grid max-w-xl gap-2 text-xs font-semibold text-slate-300';
+      matchControl.innerHTML = '<span>Configure match</span><select id="admin-match-select" class="input rounded-lg px-3 py-2 text-sm"></select>';
+      const matchSelect = matchControl.querySelector('select');
+
+      window.TICKETING_DATA.matches.forEach(match => {
+        const venue = window.getVenue(match);
+        const option = document.createElement('option');
+        option.value = match.id;
+        option.textContent = `${match.home} vs ${match.away} | ${venue.name}`;
+        matchSelect.appendChild(option);
+      });
+
+      pricingGrid.before(matchControl);
+      matchSelect.value = activeMatchId;
+      matchSelect.addEventListener('change', () => {
+        activeMatchId = matchSelect.value;
+        loadActiveMatchPricing();
+        updateAdminAvailabilityMap();
+      });
+
+      const mapPanel = document.createElement('div');
+      mapPanel.className = 'mt-6 rounded-xl border border-slate-700 bg-slate-950/50 p-4';
+      mapPanel.innerHTML = '<div class="mb-3"><h3 class="text-sm font-bold text-white">Section availability</h3><p class="mt-1 text-xs text-slate-400">Click a section to toggle availability for this match. This prototype uses the shared project stadium map.</p></div><div id="admin-stadium-map" class="overflow-hidden rounded-lg border border-slate-700 bg-slate-950"></div><p id="admin-map-status" class="mt-2 text-xs text-slate-400" aria-live="polite"></p>';
+      pricingSection.appendChild(mapPanel);
+
+      const status = document.getElementById('db-mode-indicator');
+      status.textContent = 'Browser-local demo; no server sync';
+      const realtimeBadge = document.querySelector('.rounded-full.bg-emerald-500\\/10');
+      if (realtimeBadge) realtimeBadge.textContent = '● Local browser storage only';
+      const heading = pricingSection.querySelector('h2');
+      if (heading) heading.textContent = 'Match ticket pricing';
+      const syncLabel = pricingSection.querySelector('.mt-5.flex.items-center.justify-between span');
+      if (syncLabel) syncLabel.textContent = 'Entered and stored in KES; overrides apply to this match only.';
+
+      loadActiveMatchPricing();
+      loadAdminStadiumMap();
+    }
+
+    function loadActiveMatchPricing() {
+      const pricing = pricingForMatch();
+      ['vvip', 'cat1', 'cat2', 'cat3'].forEach(tier => {
+        document.getElementById(`price-${tier}`).value = pricing[tier] || 0;
+      });
+    }
+
+    async function loadAdminStadiumMap() {
+      const host = document.getElementById('admin-stadium-map');
+      try {
+        const response = await fetch('old-index.html', { cache: 'no-cache' });
+        if (!response.ok) throw new Error(`Map source returned ${response.status}`);
+        const source = await response.text();
+        const sourceDocument = new DOMParser().parseFromString(source, 'text/html');
+        const svg = sourceDocument.querySelector('#stadium-interactive-svg');
+        if (!svg) throw new Error('Project stadium map was not found.');
+        adminMapSvg = svg.cloneNode(true);
+        adminMapSvg.removeAttribute('id');
+        adminMapSvg.style.width = '100%';
+        adminMapSvg.style.height = 'auto';
+        adminMapSvg.style.maxHeight = '520px';
+        adminMapSvg.querySelectorAll('path').forEach(path => {
+          path.style.cursor = 'pointer';
+          path.addEventListener('click', () => {
+            if (path.dataset.sectionId) toggleAdminSection(path);
+          });
+        });
+        host.replaceChildren(adminMapSvg);
+        updateAdminAvailabilityMap();
+      } catch (error) {
+        host.textContent = 'Stadium map unavailable. Open this site through an HTTP server to load the shared map.';
+        document.getElementById('admin-map-status').textContent = error.message;
+      }
+    }
+
+    function updateAdminAvailabilityMap() {
+      if (!adminMapSvg) return;
+      const unavailable = window.getUnavailableSections(activeMatchId);
+      let sectionNumber = 0;
+      adminMapSvg.querySelectorAll('path').forEach(path => {
+        const groupId = String(path.closest('g[id]')?.id || '').toLowerCase();
+        if (groupId === 'layer_1' || !/vip|cat[1-5]/.test(groupId)) return;
+        sectionNumber += 1;
+        const sectionId = `SECTION-${String(sectionNumber).padStart(3, '0')}`;
+        const isUnavailable = unavailable.has(sectionId);
+        path.dataset.sectionId = sectionId;
+        path.classList.toggle('admin-section-unavailable', isUnavailable);
+        path.setAttribute('tabindex', '0');
+        path.setAttribute('role', 'button');
+        path.setAttribute('aria-label', `${sectionId}, ${isUnavailable ? 'unavailable' : 'available'}`);
+      });
+      document.getElementById('admin-map-status').textContent = `${sectionNumber} sections · ${unavailable.size} unavailable for ${activeMatchId.toUpperCase()}.`;
+    }
+
+    function toggleAdminSection(path) {
+      const inventory = JSON.parse(localStorage.getItem('pamoja_match_unavailable_sections') || '{}');
+      const unavailable = new Set(inventory[activeMatchId] || []);
+      const sectionId = path.dataset.sectionId;
+      if (unavailable.has(sectionId)) unavailable.delete(sectionId);
+      else unavailable.add(sectionId);
+      inventory[activeMatchId] = [...unavailable];
+      localStorage.setItem('pamoja_match_unavailable_sections', JSON.stringify(inventory));
+      updateAdminAvailabilityMap();
+    }
 
     function initStorage() {
-      // Load pricing from localStorage or fallback to default
-      const savedPricing = localStorage.getItem('afcon_pricing');
-      if (savedPricing) {
-        try {
-          const p = JSON.parse(savedPricing);
-          if (p.vvip) document.getElementById('price-vvip').value = p.vvip;
-          if (p.cat1) document.getElementById('price-cat1').value = p.cat1;
-          if (p.cat2) document.getElementById('price-cat2').value = p.cat2;
-          if (p.cat3) document.getElementById('price-cat3').value = p.cat3;
-        } catch (e) {
-          console.error(e);
-        }
-      } else {
-        localStorage.setItem('afcon_pricing', JSON.stringify(DEFAULT_PRICING));
-      }
+      initializeMatchControls();
 
       // Load bookings from localStorage or fallback
       const savedBookings = localStorage.getItem('afcon_bookings');
@@ -131,31 +235,6 @@
 
     async function loadBookings() {
       initStorage();
-
-      // Attempt Supabase fetch if active
-      if (SUPABASE_CONFIG.url && !SUPABASE_CONFIG.url.includes('YOUR_SUPABASE_PROJECT')) {
-        try {
-          const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/bookings`, {
-            headers: {
-              apikey: SUPABASE_CONFIG.anonKey,
-              Authorization: `Bearer ${SUPABASE_CONFIG.anonKey}`,
-              Prefer: 'return=representation',
-            },
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (data && data.length) {
-              bookings = data;
-              localStorage.setItem('afcon_bookings', JSON.stringify(bookings));
-              renderBookings();
-              updateKpis();
-              notify('Bookings synchronized with Supabase');
-            }
-          }
-        } catch (e) {
-          console.warn('Supabase offline or unreachable, using local persistent ledger.', e);
-        }
-      }
     }
 
     function updateKpis() {
@@ -256,12 +335,12 @@
     }
 
     function resetDefaultPricing() {
-      document.getElementById('price-vvip').value = DEFAULT_PRICING.vvip;
-      document.getElementById('price-cat1').value = DEFAULT_PRICING.cat1;
-      document.getElementById('price-cat2').value = DEFAULT_PRICING.cat2;
-      document.getElementById('price-cat3').value = DEFAULT_PRICING.cat3;
+      const allPricing = JSON.parse(localStorage.getItem('pamoja_match_pricing') || '{}');
+      delete allPricing[activeMatchId];
+      localStorage.setItem('pamoja_match_pricing', JSON.stringify(allPricing));
+      loadActiveMatchPricing();
       savePricing();
-      notify('Pricing reset to default tournament tier');
+      notify('Selected match reset to its venue base prices.');
     }
 
     function resetToDefaults() {
@@ -275,33 +354,21 @@
 
     async function savePricing() {
       const pricing = {
-        vvip: Number(document.getElementById('price-vvip').value) || 25000,
-        cat1: Number(document.getElementById('price-cat1').value) || 5000,
-        cat2: Number(document.getElementById('price-cat2').value) || 2500,
-        cat3: Number(document.getElementById('price-cat3').value) || 1000,
+        vvip: Number(document.getElementById('price-vvip').value),
+        cat1: Number(document.getElementById('price-cat1').value),
+        cat2: Number(document.getElementById('price-cat2').value),
+        cat3: Number(document.getElementById('price-cat3').value),
       };
 
-      // Save to localStorage immediately so index.html syncs instantly
-      localStorage.setItem('afcon_pricing', JSON.stringify(pricing));
-
-      // Also attempt Supabase PATCH if configured
-      if (SUPABASE_CONFIG.url && !SUPABASE_CONFIG.url.includes('YOUR_SUPABASE_PROJECT')) {
-        try {
-          await fetch(`${SUPABASE_CONFIG.url}/rest/v1/pricing`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              apikey: SUPABASE_CONFIG.anonKey,
-              Authorization: `Bearer ${SUPABASE_CONFIG.anonKey}`,
-            },
-            body: JSON.stringify(pricing),
-          });
-        } catch (e) {
-          console.warn('Supabase pricing sync deferred to local storage', e);
-        }
+      if (Object.values(pricing).some(value => !Number.isFinite(value) || value < 0)) {
+        notify('Enter valid non-negative KES prices for every category.');
+        return;
       }
 
-      notify('Pricing changes published! Synced to consumer portal.');
+      const allPricing = JSON.parse(localStorage.getItem('pamoja_match_pricing') || '{}');
+      allPricing[activeMatchId] = pricing;
+      localStorage.setItem('pamoja_match_pricing', JSON.stringify(allPricing));
+      notify('Match pricing saved in this browser.');
     }
 
     function notify(message) {
@@ -311,25 +378,21 @@
       setTimeout(() => notice.classList.add('hidden'), 2800);
     }
 
-    // Storage event listener: whenever index.html makes a booking or updates data, refresh immediately
     window.addEventListener('storage', (event) => {
       if (event.key === 'afcon_bookings') {
         try {
           bookings = JSON.parse(event.newValue) || [];
           renderBookings();
           updateKpis();
-          notify('Live booking update received from fan portal!');
+          notify('Demo booking data updated in another tab.');
         } catch (e) {}
       }
-      if (event.key === 'afcon_pricing') {
+      if (event.key === 'pamoja_match_pricing') {
         try {
-          const p = JSON.parse(event.newValue);
-          if (p.vvip) document.getElementById('price-vvip').value = p.vvip;
-          if (p.cat1) document.getElementById('price-cat1').value = p.cat1;
-          if (p.cat2) document.getElementById('price-cat2').value = p.cat2;
-          if (p.cat3) document.getElementById('price-cat3').value = p.cat3;
+          loadActiveMatchPricing();
         } catch (e) {}
       }
+      if (event.key === 'pamoja_match_unavailable_sections') updateAdminAvailabilityMap();
     });
 
     loadBookings();

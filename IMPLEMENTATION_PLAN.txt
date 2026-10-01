@@ -1,0 +1,83 @@
+AFCON PAMOJA TICKETING UPGRADE
+Implementation Plan
+
+SCOPE AND GUARDRAILS
+- The production project is the root folder of this workspace.
+- afcon-tanzania/ and ticketing/ are read-only benchmarks and information banks. Do not edit, move, or delete either folder or any of their contents.
+- Keep changes within root files and new root-level files/assets required by the implementation.
+- Retain the root project's match, Fan ID, checkout, fee, and non-transferability rules unless authoritative requirements change.
+- Do not present prototype localStorage behavior as secure or cross-device production synchronization.
+
+SOURCE-OF-TRUTH FINDINGS
+- The existing root ticket rules require a unique Fan ID per match, limit each Fan ID to one ticket per match, require digital personalized tickets, prohibit stadium sales, and specify a 10-minute checkout hold and a 16% service levy.
+- ticketing-data.js explicitly states that a ticket alone does not confer travel entry. Benchmark guide wording about a ticket and Fan ID acting as a visa conflicts with that root rule. Public guide copy must not promise a visa or admission; describe any regional travel arrangement as conditional on current official government and CAF approval and direct travelers to official immigration guidance.
+- Ticket checkout lives in tickets.html and tickets.js. The match listing is on index.html. tickets.js currently fetches old-index.html and clones its 120-section SVG into the ticket page; the fetch can fail when the site is opened via file:// and the map is not a standalone packaged asset.
+- Current ticket prices are venue/category based in ticketing-data.js. super-admin.html stores global prices and demo booking data in localStorage; the Supabase values are placeholders, so it is not a production backend.
+- Public information pages already contain a mobile trigger. header-menu.js unconditionally creates another trigger, causing duplicate controls and leaving the authored trigger unwired.
+- The requested exchange rates are fixed planning rates supplied by the project owner: USD 1.00, KES 129.68, TZS 2,642.54, UGX 3,947.48. Prices are to be authored in KES; display conversions are estimates using these fixed rates.
+
+IMPLEMENTATION SEQUENCE
+
+1. Establish readable public surfaces and working navigation
+- Restyle index.html content and match cards with a light, readable surface while preserving the project's PAMOJA brand colors and match-card information.
+- Fix header-menu.js to wire the single existing trigger when present and create one only when absent. Set accessible expanded state, support Escape and backdrop/close controls, and verify About, Fixtures, Venues, FAQ, and Contact.
+- Add clear home-page calls to action for the ticket-purchase guide, budget calculator, and venue map.
+- Acceptance: one mobile menu button per page, keyboard-operable open/close, readable contrast on desktop and mobile.
+
+2. Make match selection, map, inventory, and checkout agree
+- Package the existing 120-section stadium SVG as a root project asset or otherwise load it without cross-document fetch failure; preserve geometry and ensure a useful loading/error state.
+- Confirm each match on index.html opens tickets.html with its match ID and that the selected match controls stadium, venue, and ticket pricing.
+- Extend the model to match-specific KES tier prices and section availability. Keep section/tier mapping consistent between the customer map/cart and super-admin. Unavailable sections must be visibly disabled and impossible to add to the cart.
+- Add a customer currency selector for USD, KES, TZS, and UGX. Convert display values from the KES base using the supplied fixed rates; never alter the KES amount charged or stored. Keep totals, fees, section labels, and cart values consistent.
+- Acceptance: selecting a section adds the correct match/section/tier KES price to the cart, quantities and service fee remain correct, unavailable sections cannot be selected, and currency changes only presentation.
+
+3. Extend the super-admin match operations
+- Show the same match records as the public listing, with the corresponding venue/stadium per match.
+- Provide per-match tier pricing in KES and per-section availability controls; changes must be reflected on the relevant customer ticket flow, not on unrelated matches.
+- Clearly label current browser-local persistence as a demo/local mode. Do not expose fake realtime or Supabase readiness as production behavior.
+- Acceptance: changes persist across page reloads in the same browser and are isolated by match. Production rollout remains blocked until authenticated server-side storage, roles, audit history, and concurrency controls are configured.
+
+4. Add the purchase guide and travel/visa information
+- Create a dedicated root guide.html and link it prominently from index.html.
+- Explain match selection, section selection, displayed prices/currency, Fan ID entry, payment, the 10-minute hold, digital ticket delivery, and entry checks in language consistent with the root rules.
+- Explain that travel/visa arrangements are not guaranteed by the match ticket itself. Any visa-waiver or regional arrangement must be verified against current official immigration and CAF notices before travel. Do not turn benchmark claims into confirmed policy.
+- Acceptance: the guide agrees with ticketing-data.js and terms.html and contains no single-country-focused destination framing.
+
+5. Add the PAMOJA budget calculator
+- Create root calculator.html, calculator.css, and calculator.js as needed; use the benchmark's seven-step question flow and response logic only as a reference, with a distinct root-site presentation and no Tanzania-specific theme/copy.
+- Ask which host country the visitor is attending and offer Kenya, Tanzania, Uganda, or multiple countries. Preserve the requested benchmark mappings only as interpretation of the choices (Dar es Salaam -> Nairobi, Arusha -> Tanzania, Zanzibar -> Uganda, multiple cities -> multiple countries); do not imply those are geographically equivalent.
+- Include match count/stage, accommodation level, nights, estimated travel/food/local transport as supported by the reference flow; show assumptions and an estimate rather than a guaranteed quote.
+- Acceptance: all steps can be completed, changed, reset, and produce a coherent itemized range on desktop and mobile.
+
+6. Add the country-filtered venue map
+- Create a root venues map experience (or extend venues.html) using the benchmark's working interaction concept and required map assets/libraries copied into root only when licensed and necessary.
+- Show Kenya, Tanzania, and Uganda filters; selecting a country updates both venue markers/list and venue details. Preserve the root venue information as the source of truth and flag unconfirmed venue data rather than silently inventing it.
+- Acceptance: each filter shows only that country's venues, selecting a venue updates its information, and all markers/layout remain usable on mobile.
+
+7. Verify and prepare production handoff
+- Run focused structural/script checks and exercise home, mobile navigation, ticket map, match-specific pricing/availability, currency display, calculator, and venue filters.
+- Check browser console/network errors and responsive layouts at representative phone and desktop sizes where browser tooling is available.
+- Review public copy against root rules, remove prototype claims of real-time/database synchronization, and confirm no files under afcon-tanzania/ or ticketing/ changed.
+- Production gate: this workspace is static HTML/JS. Real user accounts, authoritative ticket inventory, payment processing, Fan ID/identity verification, QR issuance, secure admin authorization, durable cross-device state, audit logs, and official visa policy validation require approved backend/services and credentials. Do not launch real ticket sales until those systems and legal/policy approvals exist.
+
+IMPLEMENTATION STATUS - 2026-10-01
+- [x] Phase 1: light, readable home match cards; home links to the guide, calculator, and venues; one accessible mobile drawer across the public pages.
+- [x] Phase 2 prototype: the existing SVG now exposes all 262 named seat sections; match venue/prices follow the selected match; customer display currency updates section prices, cart, fees, and pay label while retaining KES values; unavailable inventory blocks selection.
+- [x] Phase 3 prototype: super-admin lists the same three configured matches, edits match-scoped KES prices, and toggles matching section availability. UI correctly identifies browser-local demo storage.
+- [x] Phase 4: root guide explains the purchase path and explicitly says a ticket alone is not a visa, consistent with ticketing-data.js.
+- [x] Phase 5: root seven-step budget calculator with benchmark estimate logic, country selection, and USD/KES/TZS/UGX display.
+- [x] Phase 6: root venue explorer uses country filters, detail panels, and directions for the nine venues listed in the root venue guide. Map positions are presented as approximate references.
+- [x] Browser checks: home card contrast and mobile menu; all public-page menus; calculator completion/currency/mobile overflow; 262-section customer/admin maps; m1 price isolation from m2; KES subtotal/16% levy/total and USD conversion; live unavailable-section update; Kenya/Uganda map filters and venue detail selection.
+- [x] JavaScript syntax checks and VS Code diagnostics for touched source files.
+- [ ] Phase 7 production verification and deployment remain blocked on approved backend/services, official venue/travel information, and organizer/legal approvals.
+
+REMAINING PRODUCTION GATES
+- Replace browser localStorage with authenticated, server-side pricing and inventory; add role-based admin access, audit logs, concurrency-safe inventory/holds, and cross-device state.
+- Connect an approved payment processor and server-verified Fan ID/identity process; generate and deliver genuine signed digital tickets/QR passes. The current checkout is a demo and must not collect real payment or identity data.
+- Obtain current official visa/entry policy for each host country. Keep all ticket/visa language conditional until documented approval; a ticket alone is not an entry document.
+- Confirm the event year, fixtures, capacities, venue names/coordinates, ticket prices, refund/transfer rules, and any venue-security claims against official organizer sources. Root files currently mix 2026 and 2027 references.
+- Replace the Tailwind CDN runtime with a pinned production build (the browser warns that cdn.tailwindcss.com is not for production); review other external fonts and map tile availability/attribution.
+- Have privacy, terms, payment, identity, and cross-border travel copy reviewed by the responsible organizer/legal team before launch.
+
+DELIVERY ORDER
+The requested static prototype upgrades above are implemented and checked one by one. Complete each remaining production gate before enabling real ticket sales. Keep this plan updated if approved backend, policy, or organizer decisions change acceptance criteria.

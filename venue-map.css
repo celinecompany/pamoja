@@ -1,0 +1,31 @@
+.venue-explorer { scroll-margin-top: 5rem; }
+.venue-explorer > h2 { margin: 0; color: #17271d; font: 700 2rem Georgia, serif; }
+.venue-map-intro { max-width: 760px; color: #59655c; line-height: 1.65; }
+.venue-map-filters { display: flex; flex-wrap: wrap; gap: .45rem; margin: 1.25rem 0; }
+.venue-map-filters button { min-height: 2.5rem; padding: .55rem .85rem; color: #35433a; background: #fff; border: 1px solid #cdd8cf; font: inherit; font-size: .78rem; font-weight: 800; cursor: pointer; }
+.venue-map-filters button[aria-pressed="true"] { color: #fff; background: #075b34; border-color: #075b34; }
+.venue-map-layout { display: grid; grid-template-columns: minmax(260px, .78fr) minmax(0, 1.4fr); gap: 1rem; align-items: stretch; }
+.venue-list { display: grid; align-content: start; max-height: 440px; overflow: auto; border: 1px solid #dce6dd; background: #fff; }
+.venue-list button { display: grid; gap: .25rem; width: 100%; padding: .8rem .9rem; color: #26382c; background: #fff; border: 0; border-bottom: 1px solid #e5ebe4; text-align: left; cursor: pointer; }
+.venue-list button:hover, .venue-list button[aria-current="true"] { background: #eef6ef; }
+.venue-list strong { color: #17271d; font-size: .84rem; }
+.venue-list span { color: #657168; font-size: .72rem; }
+.venue-map-canvas { min-height: 440px; border: 1px solid #cdd8cf; background: #e8ece6; }
+.venue-detail-panel { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-top: .8rem; padding: 1rem 1.1rem; color: #4c5a50; background: #fff; border: 1px solid #dce6dd; font-size: .85rem; line-height: 1.6; }
+.venue-detail-copy { min-width: min(100%, 450px); }
+.venue-detail-copy strong { display: block; color: #17271d; font-size: 1rem; }
+.venue-detail-copy span { color: #657168; }
+.venue-directions { display: inline-block; padding: .65rem .8rem; color: #fff; background: #a00000; font-size: .75rem; font-weight: 800; text-decoration: none; }
+.venue-map-attribution { margin: .6rem 0 0; color: #657168; font-size: .68rem; }
+.venue-map-marker { display: grid; width: 2rem; height: 2rem; place-items: center; color: #fff; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,.32); font: 800 .65rem Arial, sans-serif; }
+.venue-map-marker-ke { background: #a00000; }
+.venue-map-marker-tz { background: #1d4f91; }
+.venue-map-marker-ug { background: #079447; }
+.leaflet-popup-content-wrapper { border-radius: 2px; }
+.leaflet-container a.leaflet-popup-close-button { color: #17271d; }
+
+@media (max-width: 780px) {
+  .venue-map-layout { grid-template-columns: 1fr; }
+  .venue-list { max-height: 270px; }
+  .venue-map-canvas { min-height: 350px; }
+}

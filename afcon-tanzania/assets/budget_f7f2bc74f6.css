@@ -1,0 +1,264 @@
+/* AFCON 2027 Trip Budget Calculator — afcontanzaniaguide.com */
+:root {
+  --ab-green: #1B5E20;
+  --ab-green-mid: #2E7D32;
+  --ab-green-light: #EAF3DE;
+  --ab-gold: #F9A825;
+  --ab-border: #E0E0E0;
+  --ab-surface: #F8FAF8;
+  --ab-white: #ffffff;
+  --ab-text: #1a1a1a;
+  --ab-muted: #666;
+  --ab-radius: 12px;
+  --ab-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+
+.afcon-budget {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  max-width: 640px;
+  margin: 0 auto;
+  color: var(--ab-text);
+}
+
+/* Hero */
+.afcon-budget__hero {
+  background: linear-gradient(135deg, #1B5E20, #2E7D32);
+  border-radius: var(--ab-radius);
+  padding: 28px 24px 24px;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.afcon-budget__hero-eyebrow {
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 8px;
+}
+.afcon-budget__hero-title {
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+.afcon-budget__hero-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.8);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Progress */
+.afcon-budget__progress-bar {
+  height: 4px;
+  background: var(--ab-border);
+  border-radius: 2px;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+.afcon-budget__progress-fill {
+  height: 100%;
+  background: var(--ab-green);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+  width: 14.28%;
+}
+.afcon-budget__step-indicator {
+  font-size: 11px;
+  color: var(--ab-muted);
+  text-align: right;
+  margin-bottom: 20px;
+  letter-spacing: 0.3px;
+}
+
+/* Steps */
+.afcon-budget__step { display: none; }
+.afcon-budget__step.active { display: block; animation: fadeStep 0.25s ease; }
+@keyframes fadeStep {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.afcon-budget__step-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ab-text);
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+/* Options */
+.afcon-budget__options {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.afcon-budget__options--row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 9px;
+}
+.afcon-budget__option {
+  background: var(--ab-white);
+  border: 1.5px solid var(--ab-border);
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ab-text);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  line-height: 1.4;
+}
+.afcon-budget__option:hover {
+  border-color: var(--ab-green);
+  background: var(--ab-green-light);
+  color: var(--ab-green);
+}
+.afcon-budget__option.selected {
+  border-color: var(--ab-green);
+  background: var(--ab-green-light);
+  color: var(--ab-green);
+  font-weight: 600;
+}
+.afcon-budget__options--row .afcon-budget__option {
+  text-align: center;
+}
+
+/* Result */
+.afcon-budget__result {
+  background: var(--ab-white);
+  border: 1.5px solid var(--ab-border);
+  border-radius: var(--ab-radius);
+  overflow: hidden;
+  box-shadow: var(--ab-shadow);
+  animation: fadeStep 0.35s ease;
+}
+.afcon-budget__result-header {
+  background: linear-gradient(135deg, #1B5E20, #2E7D32);
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #fff;
+}
+.afcon-budget__result-flag { font-size: 40px; flex-shrink: 0; }
+.afcon-budget__result-eyebrow {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 4px;
+}
+.afcon-budget__result-range {
+  font-size: clamp(20px, 4vw, 28px);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+/* Breakdown */
+.afcon-budget__breakdown {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.afcon-budget__breakdown-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid #F0F0F0;
+  font-size: 13px;
+}
+.afcon-budget__breakdown-row:last-child { border-bottom: none; }
+.afcon-budget__breakdown-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
+.afcon-budget__breakdown-label { flex: 1; color: var(--ab-muted); }
+.afcon-budget__breakdown-range { font-weight: 700; color: var(--ab-text); white-space: nowrap; }
+.afcon-budget__breakdown-row--total {
+  background: var(--ab-green-light);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 6px;
+  border-bottom: none;
+}
+.afcon-budget__breakdown-row--total .afcon-budget__breakdown-label {
+  font-weight: 700;
+  color: var(--ab-green);
+  font-size: 14px;
+}
+.afcon-budget__breakdown-row--total .afcon-budget__breakdown-range {
+  color: var(--ab-green);
+  font-size: 15px;
+}
+
+/* Note */
+.afcon-budget__result-note {
+  margin: 0 20px 16px;
+  font-size: 11.5px;
+  color: var(--ab-muted);
+  line-height: 1.6;
+  padding: 10px 12px;
+  background: #FAFAFA;
+  border-radius: 8px;
+  border-left: 3px solid var(--ab-gold);
+}
+
+/* Links */
+.afcon-budget__result-links {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 16px;
+  flex-wrap: wrap;
+}
+.afcon-budget__result-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ab-green);
+  text-decoration: none;
+  background: var(--ab-green-light);
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid #C8E6C9;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.afcon-budget__result-link:hover { background: #D4EDDA; }
+
+/* Share row */
+.afcon-budget__share-row {
+  display: flex;
+  gap: 10px;
+  padding: 0 20px 20px;
+  flex-wrap: wrap;
+}
+.afcon-budget__share-btn {
+  flex: 1;
+  background: var(--ab-green);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  min-width: 120px;
+}
+.afcon-budget__share-btn:hover { background: var(--ab-green-mid); }
+.afcon-budget__share-btn--outline {
+  background: transparent;
+  color: var(--ab-green);
+  border: 1.5px solid var(--ab-green);
+}
+.afcon-budget__share-btn--outline:hover { background: var(--ab-green-light); }
+
+@media (max-width: 480px) {
+  .afcon-budget__hero { padding: 20px 16px; }
+  .afcon-budget__options--row { grid-template-columns: 1fr 1fr; }
+  .afcon-budget__result-links { flex-direction: column; }
+  .afcon-budget__result-link { text-align: center; }
+}

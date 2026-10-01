@@ -497,7 +497,7 @@
         true;
 
 
-      initialise120Sections(
+      initialiseMapSections(
         svg
       );
 
@@ -529,7 +529,13 @@
      120 SECTION MAP
   ========================================================= */
 
-  function initialise120Sections(
+  function isStadiumSectionPath(path) {
+    const groupId = String(path.closest('g[id]')?.id || '').toLowerCase();
+    return groupId !== 'layer_1' && /vip|cat[1-5]/.test(groupId);
+  }
+
+
+  function initialiseMapSections(
     svg
   ) {
 
@@ -558,10 +564,7 @@
       /*
        * Ignore decorative/background paths.
        */
-      if (
-        path.id === 'Layer_1' ||
-        path.closest('#Layer_1')
-      ) {
+      if (!isStadiumSectionPath(path)) {
         return;
       }
 
@@ -600,6 +603,22 @@
       path.dataset.ticketPrice =
         price;
 
+      const unavailable =
+        window.getUnavailableSections(match.id).has(sectionId);
+
+      path.dataset.unavailable =
+        String(unavailable);
+
+      path.classList.toggle(
+        'svg-seat-unavailable',
+        unavailable
+      );
+
+      path.setAttribute(
+        'aria-disabled',
+        String(unavailable)
+      );
+
 
       path.setAttribute(
         'tabindex',
@@ -625,6 +644,11 @@
 
           event.preventDefault();
 
+          if (path.dataset.unavailable === 'true') {
+            notify('This section is unavailable for the selected match.');
+            return;
+          }
+
           toggleSection(
             path
           );
@@ -643,6 +667,11 @@
           ) {
 
             event.preventDefault();
+
+            if (path.dataset.unavailable === 'true') {
+              notify('This section is unavailable for the selected match.');
+              return;
+            }
 
             toggleSection(
               path
@@ -666,6 +695,9 @@
     console.info(
       `PAMOJA ticket map initialised: ${sectionNumber} sections`
     );
+
+    const allSectionsFilter = document.querySelector('[data-stand-filter="all"]');
+    if (allSectionsFilter) allSectionsFilter.textContent = `All ${sectionNumber} Sections`;
 
 
     updateMapSelectionState();
@@ -747,6 +779,11 @@
 
     const sectionId =
       path.dataset.sectionId;
+
+    if (window.getUnavailableSections(match.id).has(sectionId)) {
+      notify('This section is unavailable for the selected match.');
+      return;
+    }
 
 
     let allocation =
@@ -1451,6 +1488,9 @@
     setText('summary-vat', money(fee));
     setText('summary-total', money(total));
 
+    const payButton = $('pay-now-btn');
+    if (payButton) payButton.textContent = `Pay ${money(total)}`;
+
 
     const checkout =
       $('checkout-button');
@@ -1465,6 +1505,8 @@
 
     updateStepGates();
 
+  }
+
 
   /* =========================================================
      MAP VISUAL STATE
@@ -1472,11 +1514,28 @@
 
   function updateMapSelectionState() {
 
+    const unavailableSections =
+      window.getUnavailableSections(match.id);
+
+    if (state.allocations.some(allocation => unavailableSections.has(allocation.sectionId))) {
+      state.allocations = state.allocations.filter(
+        allocation => !unavailableSections.has(allocation.sectionId)
+      );
+      notify('A selected section is no longer available and was removed from your cart.');
+    }
+
     document
       .querySelectorAll(
         '#stadium-interactive-svg path[data-section-id]'
       )
       .forEach(path => {
+
+        const unavailable = unavailableSections.has(path.dataset.sectionId);
+
+        path.dataset.unavailable = String(unavailable);
+        path.classList.toggle('svg-seat-unavailable', unavailable);
+        path.setAttribute('aria-disabled', String(unavailable));
+        path.setAttribute('tabindex', unavailable ? '-1' : '0');
 
         const selected =
           state.allocations.some(
@@ -1809,10 +1868,39 @@
 
     updateMapSelectionState();
 
+    updatePriceLegend();
+
     renderSummary();
 
     renderFanIdAssignments();
 
+  }
+
+
+  function updatePriceLegend() {
+    ['vvip', 'cat1', 'cat2', 'cat3'].forEach(tier => {
+      setText(`legend-price-${tier}`, money(window.getTicketPrice(match, tier)));
+    });
+
+    const currencySelect = $('display-currency');
+    if (currencySelect) {
+      currencySelect.value = window.getDisplayCurrency();
+    }
+
+    state.allocations.forEach(allocation => {
+      allocation.price = window.getTicketPrice(match, allocation.tier);
+    });
+
+    document
+      .querySelectorAll('#stadium-interactive-svg path[data-section-id]')
+      .forEach(path => {
+        const price = window.getTicketPrice(match, path.dataset.ticketTier);
+        path.dataset.ticketPrice = String(price);
+        path.setAttribute(
+          'aria-label',
+          `${path.dataset.sectionId}, ${path.dataset.ticketTier.toUpperCase()}, ${money(price)} per ticket${path.dataset.unavailable === 'true' ? ', unavailable' : ''}`
+        );
+      });
   }
 
 
@@ -1849,7 +1937,7 @@
 
 
     if (!toast || !text) {
-      alert(message);
+      console.info(message);
       return;
     }
 
@@ -2620,6 +2708,21 @@
       renderPaymentMethods();
 
       updateAll();
+
+      const currencySelect = $('display-currency');
+      if (currencySelect) {
+        currencySelect.value = window.getDisplayCurrency();
+        currencySelect.addEventListener('change', () => {
+          localStorage.setItem('pamoja_display_currency', currencySelect.value);
+          updateAll();
+        });
+      }
+
+      window.addEventListener('storage', event => {
+        if (['pamoja_display_currency', 'pamoja_match_pricing', 'pamoja_match_unavailable_sections'].includes(event.key)) {
+          updateAll();
+        }
+      });
 
       const closeSuccess =
         $('close-success-btn');
